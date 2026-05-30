@@ -580,7 +580,7 @@
                 <div class="hud-item">
                     <span class="hud-dot"></span>
                     <span class="hud-label">SYS</span>
-                    <span style="color:var(--tactical-green);font-size:11px;">ACTIVE</span>
+                    <span class="hud-status" style="color:var(--tactical-green);font-size:11px;">ACTIVE</span>
                 </div>
                 <div class="hud-sep"></div>
                 <div class="hud-item">
@@ -670,6 +670,148 @@
     </div>
 
 <script>
+// i18n configuration
+const translations = {
+    en: {
+        panel_title: '⚙ Mission Config',
+        hostile_units: 'Hostile Units',
+        hostile_threat: 'Hostile Threat Level',
+        weapon_system: 'Weapon System',
+        engage: '▶ Engage',
+        armor: 'Armor',
+        hostile_armor: 'Hostile Armor',
+        fortification: 'Fortification',
+        hostile_count: 'Hostile Count',
+        hp: 'HP',
+        beginner: 'Beginner',
+        intermediate: 'Intermediate',
+        advanced: 'Advanced',
+        sys: 'SYS',
+        active: 'ACTIVE',
+        hp_label: 'HP',
+        hostiles: 'HOSTILES',
+        class_label: 'CLASS',
+        controls: 'Controls',
+        move: 'Move',
+        fire: 'Fire',
+        start: 'Start',
+        restart: 'Restart',
+        range: 'RANGE: 1 – 30 UNITS',
+        firerate: 'FIRERATE: 5s / 3s / 1s',
+        volley: 'VOLLEY: 1× / 3× / 5× ROUNDS',
+        tank_command: 'TANK COMMAND',
+        tank_subtitle: '// Tank Battle',
+        press_start: 'PRESS [ ENTER ] OR CLICK [ ENGAGE ]',
+        mission_failed: 'MISSION FAILED',
+        press_retry: 'PRESS [ R ] TO RETRY',
+        mission_complete: 'MISSION COMPLETE',
+        press_replay: 'PRESS [ R ] TO REPLAY'
+    },
+    zh: {
+        panel_title: '⚙ 任务配置',
+        hostile_units: '敌机数量',
+        hostile_threat: '敌机威胁等级',
+        weapon_system: '武器系统',
+        engage: '▶ 开始任务',
+        armor: '装甲',
+        hostile_armor: '敌机装甲',
+        fortification: '防御工事',
+        hostile_count: '敌机数量',
+        hp: '生命值',
+        beginner: '初级',
+        intermediate: '中级',
+        advanced: '高级',
+        sys: '系统',
+        active: '运行中',
+        hp_label: '生命',
+        hostiles: '敌机',
+        class_label: '等级',
+        controls: '控制',
+        move: '移动',
+        fire: '开火',
+        start: '开始',
+        restart: '重新开始',
+        range: '范围: 1 – 30 单位',
+        firerate: '射速: 5秒 / 3秒 / 1秒',
+        volley: '弹幕: 1× / 3× / 5× 发',
+        tank_command: '坦克大战',
+        tank_subtitle: '// TANK COMMAND',
+        press_start: '按 [ 回车 ] 或点击 [ 开始任务 ]',
+        mission_failed: '任务失败',
+        press_retry: '按 [ R ] 重试',
+        mission_complete: '任务完成',
+        press_replay: '按 [ R ] 重新开始'
+    }
+};
+
+// Get language from localStorage, default to zh
+const currentLang = localStorage.getItem('oma_games_lang') || 'zh';
+const t = translations[currentLang];
+
+// Apply translations to DOM
+document.addEventListener('DOMContentLoaded', () => {
+    // Panel title
+    document.querySelector('.panel-title').textContent = t.panel_title;
+
+    // Config labels
+    const labels = document.querySelectorAll('.config-group label');
+    if (labels[0]) labels[0].textContent = t.hostile_units;
+    if (labels[1]) labels[1].textContent = t.hostile_threat;
+    if (labels[2]) labels[2].textContent = t.weapon_system;
+
+    // Hints
+    const hints = document.querySelectorAll('.hint');
+    if (hints[0]) hints[0].textContent = t.range;
+    if (hints[1]) hints[1].textContent = t.firerate;
+    if (hints[2]) hints[2].textContent = t.volley;
+
+    // Start button
+    document.querySelector('#btn-start span').textContent = t.engage;
+
+    // Stats
+    const statLabels = document.querySelectorAll('.stat-label');
+    if (statLabels[0]) statLabels[0].textContent = t.armor;
+    if (statLabels[1]) statLabels[1].textContent = t.hostile_armor;
+    if (statLabels[2]) statLabels[2].textContent = t.fortification;
+    if (statLabels[3]) statLabels[3].textContent = t.hostile_count;
+
+    // Stat values (HP text)
+    const statVals = document.querySelectorAll('.stat-val');
+    if (statVals[0]) statVals[0].textContent = '10 ' + t.hp;
+    if (statVals[1]) statVals[1].textContent = '10 ' + t.hp;
+    if (statVals[2]) statVals[2].textContent = '3 ' + t.hp;
+
+    // HUD labels
+    const hudLabelElements = document.querySelectorAll('#hud .hud-label');
+    if (hudLabelElements[0]) hudLabelElements[0].textContent = t.sys;
+    if (hudLabelElements[1]) hudLabelElements[1].textContent = t.hp_label;
+    if (hudLabelElements[2]) hudLabelElements[2].textContent = t.hostiles;
+    if (hudLabelElements[3]) hudLabelElements[3].textContent = t.class_label;
+
+    // HUD status
+    const hudStatus = document.querySelector('#hud .hud-status');
+    if (hudStatus) hudStatus.textContent = t.active;
+
+    // Controls help
+    const controlsHelp = document.querySelector('#controls-help');
+    if (controlsHelp) {
+        controlsHelp.innerHTML = `
+            <span class="key">↑↓←→</span><span class="key">WASD</span> ${t.move}<br>
+            <span class="key">SPACE</span> ${t.fire} &nbsp;
+            <span class="key">ENTER</span> ${t.start} &nbsp;
+            <span class="key">R</span> ${t.restart}
+        `;
+    }
+
+    // Difficulty buttons
+    const diffButtons = document.querySelectorAll('#npc-difficulty-group button, #player-difficulty-group button');
+    const diffLabels = [t.beginner, t.intermediate, t.advanced];
+    diffButtons.forEach((btn, i) => {
+        if (i < 3) btn.textContent = diffLabels[i];
+        if (i >= 3 && i < 6) btn.textContent = diffLabels[i - 3];
+    });
+});
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const hpEl = document.getElementById('hp');
@@ -692,7 +834,11 @@ let config = {
 
 const NPC_COOLDOWNS = { beginner: 300, intermediate: 180, advanced: 60 };
 const PLAYER_BULLETS = { beginner: 1, intermediate: 3, advanced: 5 };
-const DIFF_LABELS = { beginner: '初级', intermediate: '中级', advanced: '高级' };
+const DIFF_LABELS = {
+    beginner: currentLang === 'zh' ? '初级' : 'Beginner',
+    intermediate: currentLang === 'zh' ? '中级' : 'Intermediate',
+    advanced: currentLang === 'zh' ? '高级' : 'Advanced'
+};
 
 // --- Config panel handlers ---
 btnNpcMinus.addEventListener('click', () => {
@@ -1174,15 +1320,15 @@ class Game {
             ctx.fillStyle = '#c8ccbe';
             ctx.font = 'bold 36px "Black Ops One", cursive';
             ctx.textAlign = 'center';
-            ctx.fillText('TANK COMMAND', canvas.width / 2, canvas.height / 2 - 40);
+            ctx.fillText(t.tank_command, canvas.width / 2, canvas.height / 2 - 40);
 
             ctx.fillStyle = '#d4a017';
             ctx.font = '18px "Share Tech Mono", monospace';
-            ctx.fillText('// 坦克大战', canvas.width / 2, canvas.height / 2);
+            ctx.fillText(t.tank_subtitle, canvas.width / 2, canvas.height / 2);
 
             ctx.fillStyle = '#6b7260';
             ctx.font = '14px "Share Tech Mono", monospace';
-            ctx.fillText('PRESS [ ENTER ] OR CLICK [ ENGAGE ]', canvas.width / 2, canvas.height / 2 + 50);
+            ctx.fillText(t.press_start, canvas.width / 2, canvas.height / 2 + 50);
 
             // Decorative targeting reticle
             ctx.strokeStyle = 'rgba(212,160,23,0.15)';
@@ -1214,12 +1360,12 @@ class Game {
             ctx.textAlign = 'center';
             ctx.shadowColor = '#cc3a2f';
             ctx.shadowBlur = 30;
-            ctx.fillText('MISSION FAILED', canvas.width / 2, canvas.height / 2 - 10);
+            ctx.fillText(t.mission_failed, canvas.width / 2, canvas.height / 2 - 10);
             ctx.shadowBlur = 0;
 
             ctx.fillStyle = '#c8ccbe';
             ctx.font = '16px "Share Tech Mono", monospace';
-            ctx.fillText('PRESS [ R ] TO RETRY', canvas.width / 2, canvas.height / 2 + 50);
+            ctx.fillText(t.press_retry, canvas.width / 2, canvas.height / 2 + 50);
             ctx.textAlign = 'start';
             return;
         }
@@ -1233,12 +1379,12 @@ class Game {
             ctx.textAlign = 'center';
             ctx.shadowColor = '#d4a017';
             ctx.shadowBlur = 30;
-            ctx.fillText('MISSION COMPLETE', canvas.width / 2, canvas.height / 2 - 10);
+            ctx.fillText(t.mission_complete, canvas.width / 2, canvas.height / 2 - 10);
             ctx.shadowBlur = 0;
 
             ctx.fillStyle = '#c8ccbe';
             ctx.font = '16px "Share Tech Mono", monospace';
-            ctx.fillText('PRESS [ R ] TO REPLAY', canvas.width / 2, canvas.height / 2 + 50);
+            ctx.fillText(t.press_replay, canvas.width / 2, canvas.height / 2 + 50);
             ctx.textAlign = 'start';
             return;
         }

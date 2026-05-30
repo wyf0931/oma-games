@@ -385,10 +385,6 @@
 
     <main class="container">
         <section class="hero">
-            <div class="hero-badge">
-                <i data-lucide="sparkles"></i>
-                <span data-i18n="hero_badge">Vibe Coding Powered</span>
-            </div>
             <h1 data-i18n="hero_title">Game Demo Hub</h1>
             <p data-i18n="hero_description">Lightweight HTML5 games powered by AI-driven development</p>
         </section>
@@ -399,15 +395,11 @@
                 <a class="game-card" href="tank.html">
                     <img src="screenshot-tank.png" alt="TANK COMMAND" class="game-thumbnail">
                     <div class="game-content">
-                        <h3 class="game-title">TANK COMMAND</h3>
+                        <h3 class="game-title" data-i18n="tank_title">TANK COMMAND</h3>
                         <p class="game-description" data-i18n="tank_description">
                             Classic tank battle game with military HUD style. Customize enemy count, difficulty, and bullet patterns.
                         </p>
                         <div class="game-footer">
-                            <div class="game-tags">
-                                <span class="game-tag">HTML5 Canvas</span>
-                                <span class="game-tag">Action</span>
-                            </div>
                             <div class="play-button">
                                 <span data-i18n="play_button">Play</span>
                                 <i data-lucide="play"></i>
@@ -462,25 +454,25 @@
         const translations = {
             en: {
                 site_title: 'OhMyAgent Games',
-                hero_badge: 'Vibe Coding Powered',
-                hero_title: 'Game Demo Hub',
-                hero_description: 'Lightweight HTML5 games powered by AI-driven development',
-                tank_description: 'Classic tank battle game with military HUD style. Customize enemy count, difficulty, and bullet patterns.',
+                hero_title: 'Game Center',
+                hero_description: 'Lightweight HTML5 games powered by Vibe Coding development',
+                tank_title: 'Tank Command',
+                tank_description: 'Lightweight HTML5 games powered by Vibe Coding development',
                 play_button: 'Play'
             },
             zh: {
-                site_title: 'OhMyAgent 游戏',
-                hero_badge: 'Vibe Coding 驱动',
-                hero_title: '游戏演示中心',
-                hero_description: '由 AI 驱动开发的轻量级 HTML5 游戏',
-                tank_description: '经典坦克大战游戏，军事 HUD 风格。支持自定义敌机数量、难度和弹幕配置。',
+                site_title: 'OhMyAgent 游戏中心',
+                hero_title: '游戏中心',
+                hero_description: '由 Vibe Coding 开发模式实现的轻量级 HTML5 游戏',
+                tank_title: '坦克大战',
+                tank_description: '由 Vibe Coding 开发模式实现的轻量级 HTML5 游戏',
                 play_button: '开始游戏'
             }
         };
 
         // State management
-        let currentLang = localStorage.getItem('lang') || 'en';
-        let currentTheme = localStorage.getItem('theme') || 'dark';
+        let currentLang = localStorage.getItem('oma_games_lang') || 'zh';
+        let currentTheme = localStorage.getItem('oma_games_theme') || 'dark';
 
         // DOM elements
         const langToggle = document.getElementById('lang-toggle');
@@ -489,7 +481,7 @@
         // Language toggle function
         function setLanguage(lang) {
             currentLang = lang;
-            localStorage.setItem('lang', lang);
+            localStorage.setItem('oma_games_lang', lang);
 
             // Update all elements with data-i18n attribute
             document.querySelectorAll('[data-i18n]').forEach(element => {
@@ -506,7 +498,7 @@
         // Theme toggle function
         function setTheme(theme) {
             currentTheme = theme;
-            localStorage.setItem('theme', theme);
+            localStorage.setItem('oma_games_theme', theme);
 
             // Update document attribute
             document.documentElement.setAttribute('data-theme', theme);
