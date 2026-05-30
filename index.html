@@ -215,6 +215,81 @@
             background: var(--bg-secondary);
         }
 
+        /* Carousel */
+        .game-thumbnail-wrapper {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: var(--bg-secondary);
+        }
+
+        .carousel-slides {
+            display: flex;
+            height: 100%;
+            animation: carousel-scroll 6s ease-in-out infinite;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes carousel-scroll {
+            0%, 40% { transform: translateX(0); }
+            50%, 90% { transform: translateX(-100%); }
+            100% { transform: translateX(0); }
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 2;
+            animation: carousel-dot-sync 6s ease-in-out infinite;
+        }
+
+        @keyframes carousel-dot-sync {
+            0%, 40% { --dot-active: 0; }
+            50%, 90% { --dot-active: 1; }
+            100% { --dot-active: 0; }
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+
+        .carousel-dot:nth-child(1) { animation: dot1 6s ease-in-out infinite; }
+        .carousel-dot:nth-child(2) { animation: dot2 6s ease-in-out infinite; }
+
+        @keyframes dot1 {
+            0%, 40% { background: white; width: 20px; border-radius: 4px; }
+            50%, 90% { background: rgba(255,255,255,0.4); width: 8px; border-radius: 50%; }
+            100% { background: white; width: 20px; border-radius: 4px; }
+        }
+
+        @keyframes dot2 {
+            0%, 40% { background: rgba(255,255,255,0.4); width: 8px; border-radius: 50%; }
+            50%, 90% { background: white; width: 20px; border-radius: 4px; }
+            100% { background: rgba(255,255,255,0.4); width: 8px; border-radius: 50%; }
+        }
+
         .game-content {
             padding: 20px;
             flex: 1;
@@ -393,7 +468,16 @@
             <div class="games-grid">
                 <!-- Game Card: TANK COMMAND -->
                 <a class="game-card" href="tank.html">
-                    <img src="screenshot-tank.png" alt="TANK COMMAND" class="game-thumbnail">
+                    <div class="game-thumbnail-wrapper" data-carousel>
+                        <div class="carousel-slides">
+                            <div class="carousel-slide"><img src="tank-start.jpg" alt="TANK COMMAND - 主界面"></div>
+                            <div class="carousel-slide"><img src="tank-play.jpg" alt="TANK COMMAND - 游戏中"></div>
+                        </div>
+                        <div class="carousel-dots">
+                            <button class="carousel-dot" data-dot="0"></button>
+                            <button class="carousel-dot" data-dot="1"></button>
+                        </div>
+                    </div>
                     <div class="game-content">
                         <h3 class="game-title" data-i18n="tank_title">TANK COMMAND</h3>
                         <p class="game-description" data-i18n="tank_description">
