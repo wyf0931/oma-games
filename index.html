@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OhMyAgent Games</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: -apple-system, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+        .games {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 960px;
+            width: 100%;
+        }
+        .game-card {
+            background: #141414;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.25s;
+        }
+        .game-card:hover {
+            border-color: #667eea;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+        }
+        .game-card h2 {
+            font-size: 20px;
+            margin-bottom: 6px;
+            color: #f0f0f0;
+        }
+        .game-card p {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.5;
+        }
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #667eea;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 60px;
+            color: #444;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 OhMyAgent Games</h1>
+    <p class="subtitle">Vibe Coding 驱动的轻量游戏 Demo</p>
+    <div class="games">
+        <a class="game-card" href="tank.html">
+            <h2>TANK COMMAND</h2>
+            <p>经典坦克大战，军事 HUD 风格。支持自定义敌机数量、难度和弹幕配置。</p>
+            <span class="tag">HTML5 Canvas</span>
+        </a>
+    </div>
+    <p class="footer">OhMyAgent · <a href="https://ohmyagent.ai">ohmyagent.ai</a></p>
+</body>
+</html>
