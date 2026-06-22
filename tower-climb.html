@@ -355,58 +355,15 @@
             display: inline-block;
         }
 
-        #top-bar {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 50;
-            pointer-events: none;
+        /* === Unified game header theme overrides (shared/oma-games.css) === */
+        :root {
+            --oma-header-bg: rgba(26, 26, 26, 0.7);
+            --oma-header-hover-bg: #ff8c1a;
+            --oma-header-hover-fg: #1a1a1a;
+            --oma-header-border: rgba(255, 140, 26, 0.4);
+            --oma-header-glow: rgba(255, 140, 26, 0.4);
         }
-        #top-bar > * { pointer-events: auto; }
-
-        .nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border: 1px solid var(--warn-orange-dim);
-            background: rgba(26, 26, 26, 0.85);
-            color: var(--warn-orange);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-decoration: none;
-        }
-        .nav-back:hover {
-            background: var(--warn-orange);
-            color: var(--industrial-bg-deep);
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--warn-orange-dim);
-            background: rgba(26, 26, 26, 0.85);
-            color: var(--warn-orange);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .icon-btn:hover {
-            background: var(--warn-orange);
-            color: var(--industrial-bg-deep);
-        }
+        .oma-game-header { font-family: 'Russo One', sans-serif; }
 
         .legend {
             display: flex;
@@ -436,14 +393,6 @@
     </style>
 </head>
 <body>
-    <div id="top-bar">
-        <a href="index.html" class="nav-back">◄ oma-games</a>
-        <div class="header-controls">
-            <button class="icon-btn" id="lang-btn" title="切换语言">中/EN</button>
-            <button class="icon-btn" id="theme-btn" title="切换主题">◐</button>
-        </div>
-    </div>
-
     <div id="app">
         <div class="game-panel">
             <div id="hud">
@@ -597,8 +546,7 @@
         theme.init();
         input.init();
 
-        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
-        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+        OmaGames.ui.header();
 
         // ===== Canvas & DOM =====
         const canvas = document.getElementById('canvas');

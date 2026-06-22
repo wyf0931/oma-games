@@ -567,10 +567,91 @@
             #config-panel > *:not(.panel-title) { flex: 1; min-width: 140px; }
             #game-area { border-right: 2px solid var(--border); }
         }
+
+        /* --- Top bar (back to games + global controls) --- */
+        #topbar {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        #topbar > * { pointer-events: auto; }
+
+        #topbar-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid var(--amber);
+            background: rgba(11, 16, 7, 0.7);
+            color: var(--amber);
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: all 0.2s;
+        }
+        #topbar-back:hover {
+            background: var(--amber);
+            color: var(--bg-deep);
+            box-shadow: 0 0 16px var(--amber-glow);
+        }
+        .topbar-arrow { font-size: 10px; opacity: 0.7; }
+
+        .topbar-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        #topbar-lang, #topbar-theme {
+            min-width: 32px;
+            height: 32px;
+            padding: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--olive-light);
+            background: rgba(11, 16, 7, 0.7);
+            color: var(--text-data);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: all 0.2s;
+        }
+        #topbar-lang:hover, #topbar-theme:hover {
+            border-color: var(--amber);
+            color: var(--amber);
+            box-shadow: 0 0 12px rgba(212, 160, 23, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .topbar-text { display: none; }
+            #topbar-back { padding: 6px 10px; }
+        }
     </style>
 </head>
 <body>
     <div class="noise"></div>
+
+    <header id="topbar">
+        <a href="index.html" id="topbar-back" title="返回游戏中心">
+            <span class="topbar-arrow">◄</span>
+            <span class="topbar-text">oma-games</span>
+        </a>
+        <div class="topbar-controls">
+            <button id="topbar-lang" title="切换语言 / Toggle language">中/EN</button>
+        </div>
+    </header>
 
     <div id="container">
         <!-- Game Area -->
@@ -747,6 +828,13 @@ const translations = {
 // Get language from localStorage, default to zh
 const currentLang = localStorage.getItem('oma_games_lang') || 'zh';
 const t = translations[currentLang];
+
+// Top bar language toggle — flip stored lang and reload so DOMContentLoaded re-applies
+document.getElementById('topbar-lang').addEventListener('click', () => {
+    const next = (localStorage.getItem('oma_games_lang') || 'zh') === 'zh' ? 'en' : 'zh';
+    localStorage.setItem('oma_games_lang', next);
+    location.reload();
+});
 
 // Apply translations to DOM
 document.addEventListener('DOMContentLoaded', () => {

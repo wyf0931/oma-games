@@ -18,10 +18,17 @@
     // ===== i18n =====
     const i18n = {
         current: localStorage.getItem('oma_games_lang') || 'zh',
-        dict: {},
+        dict: {
+            zh: { back_to_games: '返回游戏中心', toggle_lang: '切换语言', toggle_theme: '切换主题' },
+            en: { back_to_games: 'Back to games', toggle_lang: 'Toggle language', toggle_theme: 'Toggle theme' }
+        },
 
         load(dict) {
-            this.dict = dict || {};
+            // Merge user dict with built-in defaults (user wins)
+            this.dict = {
+                zh: Object.assign({}, this.dict.zh, (dict && dict.zh) || {}),
+                en: Object.assign({}, this.dict.en, (dict && dict.en) || {})
+            };
             this.apply();
         },
 
@@ -209,6 +216,44 @@
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    // ===== UI: unified game header =====
+    // Renders a fixed-position top bar with: [◄ oma-games]    [中/EN] [◐]
+    // Uses currentColor inheritance so each game's body color drives the look.
+    // Games can override via CSS variables:
+    //   --oma-header-bg (default: rgba(0,0,0,0.45))
+    //   --oma-header-fg (default: currentColor)
+    //   --oma-header-border (default: currentColor)
+    const ui = {
+        header(opts = {}) {
+            const back = opts.back || '/';
+            const root = typeof opts.mount === 'string'
+                ? document.querySelector(opts.mount)
+                : (opts.mount || document.body);
+
+            const langLabel = opts.langLabel || '中/EN';
+            const themeIcon = opts.themeIcon || '◐';
+            const backText = opts.backText || 'oma-games';
+
+            const html = `
+                <header class="oma-game-header">
+                    <a href="${back}" class="oma-game-back" title="${i18n.t('back_to_games')}">
+                        <span class="oma-game-back-arrow">◄</span>
+                        <span class="oma-game-back-text">${backText}</span>
+                    </a>
+                    <div class="oma-game-controls">
+                        <button class="oma-game-btn" data-oma-act="lang" title="${i18n.t('toggle_lang')}">${langLabel}</button>
+                        <button class="oma-game-btn" data-oma-act="theme" title="${i18n.t('toggle_theme')}">${themeIcon}</button>
+                    </div>
+                </header>
+            `;
+            root.insertAdjacentHTML('afterbegin', html);
+            const header = root.querySelector('.oma-game-header');
+            header.querySelector('[data-oma-act="lang"]').addEventListener('click', () => i18n.toggle());
+            header.querySelector('[data-oma-act="theme"]').addEventListener('click', () => theme.toggle());
+            return header;
+        }
+    };
+
     window.OmaGames = {
         i18n,
         theme,
@@ -219,6 +264,7 @@
         clamp,
         rectIntersect,
         randInt,
-        pick
+        pick,
+        ui
     };
 })();

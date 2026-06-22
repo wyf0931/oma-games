@@ -30,6 +30,13 @@
             --accent: var(--dino-fg);
             --accent-strong: var(--dino-fg);
             --accent-contrast: var(--dino-bg);
+
+            /* === Unified game header theme overrides (shared/oma-games.css) === */
+            --oma-header-bg: rgba(247, 247, 247, 0.7);
+            --oma-header-hover-bg: #535353;
+            --oma-header-hover-fg: #f7f7f7;
+            --oma-header-border: #535353;
+            --oma-header-glow: rgba(83, 83, 83, 0.3);
         }
 
         [data-theme="dark"] {
@@ -40,6 +47,12 @@
             --dino-dim: #4a4a4a;
             --dino-card: #232323;
             --dino-warn: #ff6b66;
+
+            /* === Unified game header theme overrides (shared/oma-games.css) === */
+            --oma-header-bg: rgba(26, 26, 26, 0.7);
+            --oma-header-hover-bg: #e0e0e0;
+            --oma-header-hover-fg: #1a1a1a;
+            --oma-header-border: #e0e0e0;
 
             --bg-primary: var(--dino-bg);
             --bg-secondary: #222;
@@ -282,61 +295,6 @@
             text-align: center;
         }
 
-        #top-bar {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 50;
-            pointer-events: none;
-        }
-        #top-bar > * { pointer-events: auto; }
-
-        .nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border: 2px solid var(--border-strong);
-            box-shadow: 2px 2px 0 var(--border-strong);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-decoration: none;
-        }
-        .nav-back:hover {
-            background: var(--text-primary);
-            color: var(--bg-primary);
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--border-strong);
-            box-shadow: 2px 2px 0 var(--border-strong);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .icon-btn:hover {
-            background: var(--text-primary);
-            color: var(--bg-primary);
-        }
-
         @media (max-width: 1100px) {
             #app { flex-direction: column; }
             #config-panel { width: 100%; max-width: 900px; }
@@ -344,14 +302,6 @@
     </style>
 </head>
 <body>
-    <div id="top-bar">
-        <a href="index.html" class="nav-back">◄ oma-games</a>
-        <div class="header-controls">
-            <button class="icon-btn" id="lang-btn" title="切换语言 / Language">中/EN</button>
-            <button class="icon-btn" id="theme-btn" title="切换主题 / Theme">◐</button>
-        </div>
-    </div>
-
     <div id="app">
         <div class="pixel-panel" id="game-area">
             <div id="hud">
@@ -484,8 +434,7 @@
         theme.init();
         input.init();
 
-        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
-        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+        OmaGames.ui.header();
 
         // ===== Canvas setup =====
         const canvas = document.getElementById('canvas');

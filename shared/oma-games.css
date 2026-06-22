@@ -311,3 +311,95 @@ a {
     display: flex;
     gap: 8px;
 }
+
+/* ===== Common UI: unified game header (in-game top bar) =====
+ * Renders via OmaGames.ui.header({ back, mount }).
+ * Uses currentColor inheritance so each game's body `color` drives the look.
+ * Override these vars per-game if needed:
+ *   --oma-header-bg     (default: rgba(0,0,0,0.45))
+ *   --oma-header-fg     (default: currentColor — i.e. body color)
+ *   --oma-header-border (default: currentColor)
+ *   --oma-header-hover-bg (default: currentColor; hover swaps fg/bg)
+ */
+.oma-game-header {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    font-family: inherit;
+}
+
+.oma-game-header > * {
+    pointer-events: auto;
+}
+
+.oma-game-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--oma-header-border, currentColor);
+    background: var(--oma-header-bg, rgba(0, 0, 0, 0.45));
+    color: var(--oma-header-fg, currentColor);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.oma-game-back:hover {
+    background: var(--oma-header-hover-bg, currentColor);
+    color: var(--oma-header-hover-fg, var(--bg-primary, #000));
+    box-shadow: 0 0 16px var(--oma-header-glow, transparent);
+}
+
+.oma-game-back-arrow {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.oma-game-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.oma-game-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--oma-header-border, currentColor);
+    background: var(--oma-header-bg, rgba(0, 0, 0, 0.45));
+    color: var(--oma-header-fg, currentColor);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.oma-game-btn:hover {
+    background: var(--oma-header-hover-bg, currentColor);
+    color: var(--oma-header-hover-fg, var(--bg-primary, #000));
+    box-shadow: 0 0 16px var(--oma-header-glow, transparent);
+}
+
+@media (max-width: 600px) {
+    .oma-game-back-text {
+        display: none;
+    }
+    .oma-game-back {
+        padding: 6px 10px;
+    }
+}

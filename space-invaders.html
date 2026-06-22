@@ -260,56 +260,15 @@
             font-family: 'Share Tech Mono', monospace;
         }
 
-        #top-bar {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 50;
-            pointer-events: none;
+        /* === Unified game header theme overrides (shared/oma-games.css) === */
+        :root {
+            --oma-header-bg: rgba(0, 20, 0, 0.6);
+            --oma-header-hover-bg: var(--phosphor);
+            --oma-header-hover-fg: var(--crt-bg);
+            --oma-header-border: var(--phosphor-dim);
+            --oma-header-glow: rgba(0, 255, 65, 0.3);
         }
-        #top-bar > * { pointer-events: auto; }
-
-        .nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border: 1px solid var(--phosphor-dim);
-            background: rgba(0, 20, 0, 0.6);
-            color: var(--phosphor);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
-        .nav-back:hover {
-            background: var(--phosphor);
-            color: var(--crt-bg);
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--phosphor-dim);
-            background: rgba(0, 20, 0, 0.6);
-            color: var(--phosphor);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-        }
-        .icon-btn:hover {
-            background: var(--phosphor);
-            color: var(--crt-bg);
-        }
+        .oma-game-header { font-family: 'Share Tech Mono', monospace; top: 16px; left: 16px; right: 16px; }
 
         @keyframes flicker {
             0%, 100% { opacity: 1; }
@@ -327,14 +286,6 @@
     </style>
 </head>
 <body>
-    <div id="top-bar">
-        <a href="index.html" class="nav-back">◄ oma-games</a>
-        <div class="header-controls">
-            <button class="icon-btn" id="lang-btn" title="切换语言">中/EN</button>
-            <button class="icon-btn" id="theme-btn" title="切换主题">◐</button>
-        </div>
-    </div>
-
     <div id="app">
         <div class="crt-panel" id="game-area">
             <div id="hud">
@@ -438,8 +389,7 @@
         theme.init();
         input.init();
 
-        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
-        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+        OmaGames.ui.header();
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');

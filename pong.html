@@ -76,56 +76,15 @@
             );
         }
 
-        #top-bar {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 50;
-            pointer-events: none;
+        /* === Unified game header theme overrides (shared/oma-games.css) === */
+        :root {
+            --oma-header-bg: rgba(0, 0, 0, 0.6);
+            --oma-header-hover-bg: var(--pong-fg);
+            --oma-header-hover-fg: var(--pong-bg);
+            --oma-header-border: var(--pong-fg-faint);
+            --oma-header-glow: rgba(245, 245, 245, 0.3);
         }
-        #top-bar > * { pointer-events: auto; }
-
-        .nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border: 1px solid var(--pong-fg-faint);
-            background: rgba(0, 0, 0, 0.5);
-            color: var(--pong-fg);
-            font-family: 'VT323', monospace;
-            font-size: 14px;
-            letter-spacing: 1px;
-        }
-        .nav-back:hover {
-            background: var(--pong-fg);
-            color: var(--pong-bg);
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--pong-fg-faint);
-            background: rgba(0, 0, 0, 0.5);
-            color: var(--pong-fg);
-            font-family: 'VT323', monospace;
-            font-size: 13px;
-        }
-        .icon-btn:hover {
-            background: var(--pong-fg);
-            color: var(--pong-bg);
-        }
+        .oma-game-header { font-family: 'VT323', monospace; }
 
         #app {
             display: flex;
@@ -334,14 +293,6 @@
     </style>
 </head>
 <body>
-    <div id="top-bar">
-        <a href="index.html" class="nav-back">◄ oma-games</a>
-        <div class="header-controls">
-            <button class="icon-btn" id="lang-btn" title="切换语言">中/EN</button>
-            <button class="icon-btn" id="theme-btn" title="切换主题">◐</button>
-        </div>
-    </div>
-
     <div id="app">
         <div class="pong-panel" id="game-area">
             <div id="hud">
@@ -463,8 +414,7 @@
         theme.init();
         input.init({ preventKeys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 's'] });
 
-        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
-        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+        OmaGames.ui.header();
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');

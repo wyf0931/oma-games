@@ -113,60 +113,19 @@
             gap: 24px;
         }
 
-        /* ============== Top bar (shared) ============== */
-        #top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 56px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 24px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            z-index: 50;
+        /* ============== Unified game header theme overrides (shared/oma-games.css) ============== */
+        :root {
+            --oma-header-bg: rgba(245, 245, 245, 0.85);
+            --oma-header-hover-bg: #000080;
+            --oma-header-hover-fg: #ffffff;
+            --oma-header-border: #808080;
+            --oma-header-glow: transparent;
         }
-
-        .nav-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-            letter-spacing: 0.3px;
-        }
-        .nav-back:hover { color: var(--accent); }
-
-        .nav-back .arrow {
-            font-size: 18px;
-            line-height: 1;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border-strong);
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.15s;
-        }
-        .icon-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--accent);
+        [data-theme='dark'] {
+            --oma-header-bg: rgba(30, 30, 30, 0.85);
+            --oma-header-hover-bg: #a78bfa;
+            --oma-header-hover-fg: #1a1a1a;
+            --oma-header-border: #555;
         }
 
         /* ============== Window (W95-style frame) ============== */
@@ -571,17 +530,6 @@
     </style>
 </head>
 <body data-theme="dark">
-    <div id="top-bar">
-        <a href="index.html" class="nav-back">
-            <span class="arrow">◄</span>
-            <span>oma-games</span>
-        </a>
-        <div class="header-controls">
-            <button class="icon-btn" id="lang-btn" title="切换语言 / Switch language">中/EN</button>
-            <button class="icon-btn" id="theme-btn" title="切换主题 / Toggle theme">◐</button>
-        </div>
-    </div>
-
     <div class="window" id="window">
         <div class="title-bar">
             <div class="title-bar-text">
@@ -682,11 +630,7 @@
 
         theme.init();
 
-        document.getElementById('lang-btn').addEventListener('click', () => {
-            i18n.toggle();
-            refreshOverlay();
-        });
-        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+        OmaGames.ui.header();
 
         // ===== Difficulty configurations =====
         const LEVELS = {
