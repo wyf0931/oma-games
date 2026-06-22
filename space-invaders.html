@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPACE INVADERS — 太空侵略者</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            --phosphor: #00ff41;
+            --phosphor-dim: #008f1a;
+            --phosphor-glow: rgba(0, 255, 65, 0.6);
+            --crt-bg: #000a00;
+            --crt-scan: rgba(0, 0, 0, 0.18);
+            --warning: #ff3030;
+            --warning-glow: rgba(255, 48, 48, 0.6);
+
+            --bg-primary: var(--crt-bg);
+            --bg-secondary: #001a00;
+            --bg-card: #001500;
+            --text-primary: var(--phosphor);
+            --text-secondary: var(--phosphor-dim);
+            --text-dim: #004000;
+            --border: var(--phosphor-dim);
+            --border-strong: var(--phosphor);
+            --accent: var(--phosphor);
+            --accent-strong: var(--phosphor);
+            --accent-contrast: #000a00;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--crt-bg);
+            color: var(--phosphor);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                var(--crt-scan) 2px,
+                var(--crt-scan) 4px
+            );
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 101;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                transparent 60%,
+                rgba(0, 0, 0, 0.4) 100%
+            );
+        }
+
+        #app {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+        }
+
+        .crt-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--phosphor-dim);
+            box-shadow:
+                inset 0 0 30px rgba(0, 255, 65, 0.05),
+                0 0 20px rgba(0, 255, 65, 0.1);
+            position: relative;
+        }
+
+        .crt-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(
+                180deg,
+                transparent 0%,
+                rgba(0, 255, 65, 0.02) 50%,
+                transparent 100%
+            );
+        }
+
+        #game-area {
+            padding: 16px;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--phosphor-dim);
+            background: var(--bg-secondary);
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .hud-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 11px;
+        }
+
+        .hud-value {
+            color: var(--phosphor);
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 0 0 6px var(--phosphor-glow);
+        }
+
+        .hud-value.warn {
+            color: var(--warning);
+            text-shadow: 0 0 6px var(--warning-glow);
+        }
+
+        canvas {
+            display: block;
+            background: var(--crt-bg);
+            border: 1px solid var(--phosphor-dim);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.15);
+            image-rendering: pixelated;
+        }
+
+        #config-panel {
+            width: 280px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-title {
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            color: var(--phosphor);
+            text-shadow: 0 0 8px var(--phosphor-glow);
+            letter-spacing: 3px;
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--phosphor-dim);
+        }
+
+        .config-group {
+            background: var(--bg-secondary);
+            border: 1px solid var(--phosphor-dim);
+            padding: 12px;
+        }
+
+        .config-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .config-group label::before {
+            content: '> ';
+            color: var(--phosphor);
+        }
+
+        .hint {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        .oma-diff-btn {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--crt-bg);
+        }
+        .oma-diff-btn.active {
+            background: var(--phosphor);
+            color: var(--crt-bg);
+            text-shadow: none;
+            box-shadow: 0 0 10px var(--phosphor-glow);
+        }
+
+        #btn-start {
+            padding: 12px;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            letter-spacing: 4px;
+            background: transparent;
+            color: var(--phosphor);
+            border: 1px solid var(--phosphor);
+            text-shadow: 0 0 6px var(--phosphor-glow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #btn-start:hover:not(:disabled) {
+            background: var(--phosphor);
+            color: var(--crt-bg);
+            text-shadow: none;
+            box-shadow: 0 0 20px var(--phosphor-glow);
+        }
+
+        #btn-start:disabled {
+            color: var(--text-dim);
+            border-color: var(--text-dim);
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            font-size: 12px;
+        }
+        .stat-grid .lbl { color: var(--text-dim); }
+        .stat-grid .val { color: var(--phosphor); text-align: right; }
+
+        #controls-help {
+            font-size: 11px;
+            line-height: 1.8;
+            color: var(--text-dim);
+            text-align: center;
+            padding-top: 12px;
+            border-top: 1px dashed var(--phosphor-dim);
+        }
+
+        .oma-key {
+            background: var(--crt-bg);
+            border-color: var(--phosphor-dim);
+            color: var(--phosphor);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #top-bar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 50;
+            pointer-events: none;
+        }
+        #top-bar > * { pointer-events: auto; }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid var(--phosphor-dim);
+            background: rgba(0, 20, 0, 0.6);
+            color: var(--phosphor);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .nav-back:hover {
+            background: var(--phosphor);
+            color: var(--crt-bg);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--phosphor-dim);
+            background: rgba(0, 20, 0, 0.6);
+            color: var(--phosphor);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+        }
+        .icon-btn:hover {
+            background: var(--phosphor);
+            color: var(--crt-bg);
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.95; }
+        }
+
+        canvas, .panel-title, .hud-value {
+            animation: flicker 4s ease-in-out infinite;
+        }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; }
+            #config-panel { width: 100%; max-width: 800px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-bar">
+        <a href="index.html" class="nav-back">◄ oma-games</a>
+        <div class="header-controls">
+            <button class="icon-btn" id="lang-btn" title="切换语言">中/EN</button>
+            <button class="icon-btn" id="theme-btn" title="切换主题">◐</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="crt-panel" id="game-area">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label">SCORE</span>
+                    <span class="hud-value" id="score">0</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label">LIVES</span>
+                    <span class="hud-value" id="lives">♦♦♦</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label">WAVE</span>
+                    <span class="hud-value" id="wave">01</span>
+                </div>
+            </div>
+            <canvas id="canvas" width="800" height="600"></canvas>
+        </div>
+
+        <div class="crt-panel" id="config-panel">
+            <div class="panel-title" data-i18n="title">SPACE INVADERS</div>
+
+            <div class="config-group">
+                <label data-i18n="difficulty">难度</label>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced">高级</button>
+                </div>
+                <div class="hint" data-i18n="diff_hint">敌人速度与射击频率</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="engage">▶ INSERT COIN</span></button>
+
+            <div class="config-group">
+                <label data-i18n="stats">状态</label>
+                <div class="stat-grid">
+                    <span class="lbl" data-i18n="high_score">最高分</span>
+                    <span class="val" id="high-score">0</span>
+                    <span class="lbl" data-i18n="invaders_left">剩余敌人数</span>
+                    <span class="val" id="invaders-left">—</span>
+                    <span class="lbl" data-i18n="player_speed">玩家移速</span>
+                    <span class="val">5 PX/F</span>
+                </div>
+            </div>
+
+            <div id="controls-help">
+                <span class="oma-key">←</span> <span class="oma-key">→</span> <span data-i18n="move">移动</span><br>
+                <span class="oma-key">SPACE</span> <span data-i18n="fire">射击</span><br>
+                <span class="oma-key">ENTER</span> <span data-i18n="start">开始</span>
+                &nbsp;<span class="oma-key">R</span> <span data-i18n="restart">重玩</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+        const { i18n, theme, input, loop, DIFFICULTY, clamp, randInt } = OmaGames;
+
+        i18n.load({
+            zh: {
+                title: '太空侵略者',
+                difficulty: '难度',
+                diff_hint: '敌人速度与射击频率',
+                engage: '▶ 投币开始',
+                stats: '状态',
+                high_score: '最高分',
+                invaders_left: '剩余敌人数',
+                player_speed: '玩家移速',
+                move: '移动',
+                fire: '射击',
+                start: '开始',
+                restart: '重玩',
+                press_start: '按 [ ENTER ] 或点击 [ 投币开始 ]',
+                game_over: '游戏结束',
+                press_retry: '按 [ R ] 重试',
+                victory: '清场成功',
+                press_replay: '按 [ R ] 再来一局',
+                wave_label: '第 %d 波'
+            },
+            en: {
+                title: 'SPACE INVADERS',
+                difficulty: 'Difficulty',
+                diff_hint: 'Enemy speed & fire rate',
+                engage: '▶ INSERT COIN',
+                stats: 'Status',
+                high_score: 'High Score',
+                invaders_left: 'Invaders Left',
+                player_speed: 'Player Speed',
+                move: 'Move',
+                fire: 'Fire',
+                start: 'Start',
+                restart: 'Retry',
+                press_start: 'PRESS [ ENTER ] OR CLICK [ INSERT COIN ]',
+                game_over: 'GAME OVER',
+                press_retry: 'PRESS [ R ] TO RETRY',
+                victory: 'WAVE CLEAR',
+                press_replay: 'PRESS [ R ] FOR NEXT WAVE'
+            }
+        });
+        theme.init();
+        input.init();
+
+        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
+        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const waveEl = document.getElementById('wave');
+        const highScoreEl = document.getElementById('high-score');
+        const invadersLeftEl = document.getElementById('invaders-left');
+        const btnStart = document.getElementById('btn-start');
+
+        const DIFF_PARAMS = {
+            beginner:     { enemySpeed: 0.3, enemyFireRate: 0.002, bulletSpeed: 3 },
+            intermediate: { enemySpeed: 0.6, enemyFireRate: 0.005, bulletSpeed: 4 },
+            advanced:     { enemySpeed: 1.0, enemyFireRate: 0.010, bulletSpeed: 5 }
+        };
+
+        let config = { difficulty: 'beginner' };
+        let highScore = 0;
+
+        document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.difficulty = btn.dataset.level;
+            });
+        });
+        btnStart.addEventListener('click', () => game.start());
+
+        // ===== Game entities =====
+        const PLAYER_W = 40, PLAYER_H = 16;
+        const PLAYER_Y = H - 50;
+        const BULLET_W = 3, BULLET_H = 12;
+
+        const INVADER_W = 24, INVADER_H = 16;
+        const INVADER_GAP_X = 16, INVADER_GAP_Y = 14;
+        const COLS = 11, ROWS = 5;
+
+        // Invader sprites (1 = fill, 0 = empty), 8x8 pixelated forms
+        const SPRITES = [
+            // top row invader (small)
+            [
+                [0,0,1,0,0,0,1,0,0],
+                [0,0,0,1,0,1,0,0,0],
+                [0,0,1,1,1,1,1,0,0],
+                [0,1,1,0,1,0,1,1,0],
+                [1,1,1,1,1,1,1,1,1],
+                [1,0,1,1,1,1,1,0,1],
+                [1,0,1,0,0,0,1,0,1],
+                [0,0,0,1,1,1,0,0,0]
+            ],
+            // middle invader
+            [
+                [0,0,0,1,1,0,0,0,0],
+                [0,0,1,1,1,1,0,0,0],
+                [0,1,1,1,1,1,1,0,0],
+                [1,1,0,1,1,1,0,1,1],
+                [1,1,1,1,1,1,1,1,1],
+                [0,1,0,1,1,1,0,1,0],
+                [1,0,0,0,0,0,0,0,1],
+                [0,1,0,0,0,0,0,1,0]
+            ],
+            // bottom invader (large)
+            [
+                [0,0,1,1,1,1,1,1,0],
+                [1,1,1,1,1,1,1,1,1],
+                [1,1,0,1,1,1,1,0,1],
+                [1,1,1,1,1,1,1,1,1],
+                [0,0,1,1,0,0,1,1,0],
+                [0,1,1,0,1,0,1,1,0],
+                [1,0,0,0,0,0,0,0,1],
+                [0,1,0,0,0,0,0,1,0]
+            ]
+        ];
+
+        const game = {
+            state: 'MENU',
+            score: 0,
+            lives: 3,
+            wave: 1,
+            player: null,
+            invaders: [],
+            bullets: [],
+            enemyBullets: [],
+            invaderDir: 1,
+            invaderMoveTimer: 0,
+            invaderStepInterval: 50,
+            params: DIFF_PARAMS.beginner,
+
+            start() {
+                this.params = DIFF_PARAMS[config.difficulty];
+                this.score = 0;
+                this.lives = 3;
+                this.wave = 1;
+                this.player = { x: W / 2 - PLAYER_W / 2, y: PLAYER_Y, w: PLAYER_W, h: PLAYER_H, cooldown: 0 };
+                this.bullets = [];
+                this.enemyBullets = [];
+                this.spawnWave();
+                this.state = 'PLAYING';
+                btnStart.disabled = true;
+                this.updateHud();
+            },
+
+            spawnWave() {
+                this.invaders = [];
+                const totalW = COLS * (INVADER_W + INVADER_GAP_X) - INVADER_GAP_X;
+                const startX = (W - totalW) / 2;
+                const startY = 60 + (this.wave - 1) * 10;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const spriteIdx = r < 1 ? 2 : r < 3 ? 1 : 0;
+                        this.invaders.push({
+                            x: startX + c * (INVADER_W + INVADER_GAP_X),
+                            y: startY + r * (INVADER_H + INVADER_GAP_Y),
+                            w: INVADER_W,
+                            h: INVADER_H,
+                            sprite: spriteIdx,
+                            points: spriteIdx === 2 ? 10 : spriteIdx === 1 ? 20 : 40,
+                            alive: true,
+                            frame: 0
+                        });
+                    }
+                }
+                this.invaderDir = 1;
+                this.invaderMoveTimer = 0;
+                this.updateStepInterval();
+            },
+
+            updateStepInterval() {
+                const total = ROWS * COLS;
+                const alive = this.invaders.filter(i => i.alive).length;
+                const ratio = alive / total;
+                this.invaderStepInterval = Math.max(8, Math.floor(50 * ratio * (1 / this.params.enemySpeed)));
+            },
+
+            update(dt) {
+                if (this.state === 'MENU') {
+                    if (input.pressed('Enter')) this.start();
+                    return;
+                }
+                if (this.state === 'GAMEOVER' || this.state === 'WIN') {
+                    if (input.pressed('r', 'R')) this.start();
+                    return;
+                }
+
+                // Player
+                if (input.pressed('ArrowLeft', 'a', 'A')) this.player.x -= 5;
+                if (input.pressed('ArrowRight', 'd', 'D')) this.player.x += 5;
+                this.player.x = clamp(this.player.x, 0, W - PLAYER_W);
+
+                if (input.pressed(' ')) this.playerShoot();
+                if (this.player.cooldown > 0) this.player.cooldown--;
+
+                // Invader movement (step-based)
+                this.invaderMoveTimer++;
+                if (this.invaderMoveTimer >= this.invaderStepInterval) {
+                    this.invaderMoveTimer = 0;
+                    this.stepInvaders();
+                }
+
+                // Animate invader frames
+                this.invaders.forEach(i => { if (i.alive) i.frame = (i.frame + 1) % 2; });
+
+                // Enemy fire
+                if (Math.random() < this.params.enemyFireRate * this.invaders.filter(i => i.alive).length) {
+                    this.enemyShoot();
+                }
+
+                // Bullets
+                this.bullets.forEach(b => b.y -= b.speed);
+                this.bullets = this.bullets.filter(b => b.y + BULLET_H > 0);
+
+                this.enemyBullets.forEach(b => b.y += b.speed);
+                this.enemyBullets = this.enemyBullets.filter(b => b.y < H);
+
+                // Bullet vs invader
+                for (let b of this.bullets) {
+                    for (let inv of this.invaders) {
+                        if (!inv.alive) continue;
+                        if (b.x < inv.x + inv.w && b.x + BULLET_W > inv.x && b.y < inv.y + inv.h && b.y + BULLET_H > inv.y) {
+                            inv.alive = false;
+                            b.y = -1000;
+                            this.score += inv.points;
+                            this.updateStepInterval();
+                            break;
+                        }
+                    }
+                }
+                this.bullets = this.bullets.filter(b => b.y > -100);
+
+                // Enemy bullet vs player
+                for (let b of this.enemyBullets) {
+                    if (b.x < this.player.x + this.player.w && b.x + BULLET_W > this.player.x && b.y < this.player.y + this.player.h && b.y + BULLET_H > this.player.y) {
+                        b.y = H + 1000;
+                        this.lives--;
+                        if (this.lives <= 0) this.state = 'GAMEOVER';
+                    }
+                }
+                this.enemyBullets = this.enemyBullets.filter(b => b.y < H);
+
+                // Invader reaches player line
+                for (let inv of this.invaders) {
+                    if (inv.alive && inv.y + inv.h >= this.player.y) {
+                        this.state = 'GAMEOVER';
+                        break;
+                    }
+                }
+
+                if (this.invaders.every(i => !i.alive)) {
+                    this.wave++;
+                    if (this.wave > 5) {
+                        this.state = 'WIN';
+                    } else {
+                        this.spawnWave();
+                    }
+                }
+
+                if (this.state !== 'PLAYING') btnStart.disabled = false;
+                this.updateHud();
+            },
+
+            stepInvaders() {
+                const speed = 4;
+                let hitEdge = false;
+                for (let inv of this.invaders) {
+                    if (!inv.alive) continue;
+                    const nextX = inv.x + this.invaderDir * speed;
+                    if (nextX < 0 || nextX + inv.w > W) { hitEdge = true; break; }
+                }
+                if (hitEdge) {
+                    this.invaderDir *= -1;
+                    this.invaders.forEach(inv => { inv.y += 12; });
+                } else {
+                    this.invaders.forEach(inv => { inv.x += this.invaderDir * speed; });
+                }
+            },
+
+            playerShoot() {
+                if (this.player.cooldown > 0) return;
+                this.bullets.push({
+                    x: this.player.x + this.player.w / 2 - BULLET_W / 2,
+                    y: this.player.y - BULLET_H,
+                    speed: 8
+                });
+                this.player.cooldown = 18;
+            },
+
+            enemyShoot() {
+                const aliveInvaders = this.invaders.filter(i => i.alive);
+                if (aliveInvaders.length === 0) return;
+                // pick a random column's bottom invader
+                const shooter = aliveInvaders[randInt(0, aliveInvaders.length - 1)];
+                this.enemyBullets.push({
+                    x: shooter.x + shooter.w / 2 - BULLET_W / 2,
+                    y: shooter.y + shooter.h,
+                    speed: this.params.bulletSpeed
+                });
+            },
+
+            updateHud() {
+                scoreEl.textContent = this.score;
+                livesEl.textContent = '♦'.repeat(Math.max(0, this.lives)) || '—';
+                waveEl.textContent = String(this.wave).padStart(2, '0');
+                invadersLeftEl.textContent = this.invaders.filter(i => i.alive).length;
+                if (this.score > highScore) {
+                    highScore = this.score;
+                    highScoreEl.textContent = highScore;
+                }
+            },
+
+            draw() {
+                ctx.fillStyle = '#000a00';
+                ctx.fillRect(0, 0, W, H);
+
+                // Starfield background
+                if (!this._stars) {
+                    this._stars = [];
+                    for (let i = 0; i < 50; i++) {
+                        this._stars.push({ x: Math.random() * W, y: Math.random() * H, b: Math.random() });
+                    }
+                }
+                this._stars.forEach(s => {
+                    ctx.fillStyle = `rgba(0, 255, 65, ${s.b * 0.3})`;
+                    ctx.fillRect(s.x, s.y, 1, 1);
+                });
+
+                if (this.state === 'MENU') {
+                    this.drawCenteredText(i18n.t('title'), H / 2 - 40, 36, true);
+                    this.drawCenteredText('// 1978 CLASSIC', H / 2 + 0, 16, false);
+                    this.drawCenteredText(i18n.t('press_start'), H / 2 + 60, 14, false);
+                    return;
+                }
+
+                if (this.state === 'GAMEOVER') {
+                    this.drawPlayfield();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(0, 0, W, H);
+                    this.drawCenteredText(i18n.t('game_over'), H / 2 - 20, 56, true, '#ff3030');
+                    this.drawCenteredText(i18n.t('press_retry'), H / 2 + 40, 14, false);
+                    return;
+                }
+
+                if (this.state === 'WIN') {
+                    this.drawPlayfield();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(0, 0, W, H);
+                    this.drawCenteredText(i18n.t('victory'), H / 2 - 20, 56, true);
+                    this.drawCenteredText(i18n.t('press_replay'), H / 2 + 40, 14, false);
+                    return;
+                }
+
+                this.drawPlayfield();
+            },
+
+            drawPlayfield() {
+                // Ground line
+                ctx.strokeStyle = '#00ff41';
+                ctx.lineWidth = 1;
+                ctx.shadowColor = '#00ff41';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.moveTo(0, H - 30);
+                ctx.lineTo(W, H - 30);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Player ship
+                this.drawSprite(this.player.x, this.player.y, this.playerSprite(), 2);
+
+                // Invaders
+                this.invaders.forEach(inv => {
+                    if (inv.alive) {
+                        const sprite = SPRITES[inv.sprite];
+                        this.drawSprite(inv.x, inv.y, sprite, 2, inv.frame);
+                    }
+                });
+
+                // Bullets
+                ctx.fillStyle = '#00ff41';
+                ctx.shadowColor = '#00ff41';
+                ctx.shadowBlur = 6;
+                this.bullets.forEach(b => ctx.fillRect(b.x, b.y, BULLET_W, BULLET_H));
+
+                ctx.fillStyle = '#ff3030';
+                ctx.shadowColor = '#ff3030';
+                this.enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, BULLET_W, BULLET_H));
+                ctx.shadowBlur = 0;
+            },
+
+            playerSprite() {
+                return [
+                    [0,0,0,0,1,1,0,0,0,0],
+                    [0,0,0,1,1,1,1,0,0,0],
+                    [0,0,0,1,1,1,1,0,0,0],
+                    [0,1,1,1,1,1,1,1,1,0],
+                    [1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,1,1,1,1,1,1,1],
+                    [1,1,1,0,0,0,0,1,1,1]
+                ];
+            },
+
+            drawSprite(x, y, sprite, scale, frame = 0) {
+                ctx.fillStyle = '#00ff41';
+                ctx.shadowColor = '#00ff41';
+                ctx.shadowBlur = 4;
+                const rows = sprite.length;
+                const cols = sprite[0].length;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        let val = sprite[r][c];
+                        // animation frame: toggle some pixels for invader wiggle
+                        if (frame === 1 && (r === rows - 1) && val === 1) {
+                            val = (c + Math.floor(Date.now() / 500)) % 2;
+                        }
+                        if (val) {
+                            ctx.fillRect(x + c * scale, y + r * scale, scale, scale);
+                        }
+                    }
+                }
+                ctx.shadowBlur = 0;
+            },
+
+            drawCenteredText(text, y, size, glow, color) {
+                ctx.fillStyle = color || '#00ff41';
+                ctx.font = `${size}px "VT323", monospace`;
+                ctx.textAlign = 'center';
+                if (glow) {
+                    ctx.shadowColor = color || '#00ff41';
+                    ctx.shadowBlur = 12;
+                }
+                ctx.fillText(text, W / 2, y);
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'start';
+            }
+        };
+
+        loop.start(
+            (dt) => game.update(dt),
+            () => game.draw()
+        );
+    </script>
+</body>
+</html>

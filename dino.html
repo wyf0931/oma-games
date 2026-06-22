@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-REX RUN — 小恐龙跑酷</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            /* Light theme — Chrome desert */
+            --dino-bg: #f7f7f7;
+            --dino-fg: #535353;
+            --dino-fg-soft: #7a7a7a;
+            --dino-line: #535353;
+            --dino-dim: #b4b4b4;
+            --dino-card: #ffffff;
+            --dino-warn: #c0413c;
+
+            --bg-primary: var(--dino-bg);
+            --bg-secondary: #efefef;
+            --bg-card: var(--dino-card);
+            --text-primary: var(--dino-fg);
+            --text-secondary: var(--dino-fg-soft);
+            --text-dim: var(--dino-dim);
+            --border: var(--dino-dim);
+            --border-strong: var(--dino-fg);
+            --accent: var(--dino-fg);
+            --accent-strong: var(--dino-fg);
+            --accent-contrast: var(--dino-bg);
+        }
+
+        [data-theme="dark"] {
+            --dino-bg: #1a1a1a;
+            --dino-fg: #e0e0e0;
+            --dino-fg-soft: #b5b5b5;
+            --dino-line: #e0e0e0;
+            --dino-dim: #4a4a4a;
+            --dino-card: #232323;
+            --dino-warn: #ff6b66;
+
+            --bg-primary: var(--dino-bg);
+            --bg-secondary: #222;
+            --bg-card: var(--dino-card);
+            --text-primary: var(--dino-fg);
+            --text-secondary: var(--dino-fg-soft);
+            --text-dim: var(--dino-dim);
+            --border: var(--dino-dim);
+            --border-strong: var(--dino-fg);
+            --accent: var(--dino-fg);
+            --accent-strong: var(--dino-fg);
+            --accent-contrast: var(--dino-bg);
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            position: relative;
+        }
+
+        #app {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pixel-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-strong);
+            box-shadow: 4px 4px 0 var(--border-strong);
+            position: relative;
+        }
+
+        #game-area {
+            padding: 16px;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            margin-bottom: 12px;
+            border: 2px solid var(--border-strong);
+            background: var(--bg-secondary);
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+
+        .hud-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 11px;
+        }
+
+        .hud-value {
+            color: var(--text-primary);
+            font-weight: bold;
+            font-size: 18px;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .hud-value.warn {
+            color: var(--dino-warn);
+        }
+
+        canvas {
+            display: block;
+            background: var(--dino-bg);
+            border: 2px solid var(--border-strong);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        #config-panel {
+            width: 280px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-title {
+            font-family: 'VT323', monospace;
+            font-size: 30px;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 2px dashed var(--border-strong);
+            line-height: 1;
+        }
+
+        .panel-subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: -6px;
+            letter-spacing: 2px;
+        }
+
+        .config-group {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-strong);
+            padding: 12px;
+        }
+
+        .config-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .config-group label::before {
+            content: '> ';
+            color: var(--text-primary);
+        }
+
+        .hint {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        .oma-diff-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .oma-diff-btn {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            padding: 6px 4px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-strong);
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        .oma-diff-btn:hover {
+            background: var(--bg-primary);
+        }
+
+        .oma-diff-btn.active {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        #btn-start {
+            padding: 12px;
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            letter-spacing: 3px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border-strong);
+            box-shadow: 3px 3px 0 var(--border-strong);
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        #btn-start:hover:not(:disabled) {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--border-strong);
+        }
+
+        #btn-start:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: 0 0 0 var(--border-strong);
+        }
+
+        #btn-start:disabled {
+            color: var(--text-dim);
+            border-color: var(--text-dim);
+            box-shadow: 3px 3px 0 var(--text-dim);
+            cursor: not-allowed;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            font-size: 12px;
+        }
+        .stat-grid .lbl { color: var(--text-dim); }
+        .stat-grid .val { color: var(--text-primary); text-align: right; font-weight: bold; }
+
+        #controls-help {
+            font-size: 11px;
+            line-height: 1.9;
+            color: var(--text-dim);
+            padding-top: 12px;
+            border-top: 2px dashed var(--border-strong);
+        }
+        #controls-help .row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        #controls-help .row .lbl {
+            color: var(--text-dim);
+        }
+
+        .oma-key {
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            color: var(--text-primary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            padding: 2px 6px;
+            min-width: 22px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        #top-bar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 50;
+            pointer-events: none;
+        }
+        #top-bar > * { pointer-events: auto; }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 2px solid var(--border-strong);
+            box-shadow: 2px 2px 0 var(--border-strong);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-decoration: none;
+        }
+        .nav-back:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-strong);
+            box-shadow: 2px 2px 0 var(--border-strong);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .icon-btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; }
+            #config-panel { width: 100%; max-width: 900px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-bar">
+        <a href="index.html" class="nav-back">◄ oma-games</a>
+        <div class="header-controls">
+            <button class="icon-btn" id="lang-btn" title="切换语言 / Language">中/EN</button>
+            <button class="icon-btn" id="theme-btn" title="切换主题 / Theme">◐</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="pixel-panel" id="game-area">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label">SCORE</span>
+                    <span class="hud-value" id="score">00000</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label">HI</span>
+                    <span class="hud-value" id="high-score">00000</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label">SPD</span>
+                    <span class="hud-value" id="speed-val">1.0x</span>
+                </div>
+            </div>
+            <canvas id="canvas" width="900" height="300"></canvas>
+        </div>
+
+        <div class="pixel-panel" id="config-panel">
+            <div>
+                <div class="panel-title" data-i18n="title">T-REX RUN</div>
+                <div class="panel-subtitle" data-i18n="subtitle">// DESERT · NO INTERNET</div>
+            </div>
+
+            <div class="config-group">
+                <label data-i18n="difficulty">难度</label>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner" data-i18n="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate" data-i18n="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced" data-i18n="advanced">高级</button>
+                </div>
+                <div class="hint" data-i18n="diff_hint">起始速度与障碍密度</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="start_btn">▶ START</span></button>
+
+            <div class="config-group">
+                <label data-i18n="stats">状态</label>
+                <div class="stat-grid">
+                    <span class="lbl" data-i18n="high_score">最高分</span>
+                    <span class="val" id="best-score">00000</span>
+                    <span class="lbl" data-i18n="current_speed">当前速度</span>
+                    <span class="val" id="cur-speed">1.0x</span>
+                    <span class="lbl" data-i18n="distance">距离</span>
+                    <span class="val" id="distance">0 m</span>
+                </div>
+            </div>
+
+            <div id="controls-help">
+                <div class="row">
+                    <span class="oma-key">↑</span>
+                    <span class="oma-key">SPACE</span>
+                    <span class="oma-key">W</span>
+                    <span class="lbl" data-i18n="jump">跳跃</span>
+                </div>
+                <div class="row">
+                    <span class="oma-key">↓</span>
+                    <span class="oma-key">S</span>
+                    <span class="lbl" data-i18n="duck">蹲下 / 快速落地</span>
+                </div>
+                <div class="row">
+                    <span class="oma-key">R</span>
+                    <span class="lbl" data-i18n="restart">重新开始</span>
+                </div>
+                <div class="row">
+                    <span class="oma-key">P</span>
+                    <span class="lbl" data-i18n="pause">暂停</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+        const { i18n, theme, input, loop, fsm, clamp, randInt, pick } = OmaGames;
+
+        i18n.load({
+            zh: {
+                title: 'T-REX RUN',
+                subtitle: '// 沙漠 · 没有网络',
+                difficulty: '难度',
+                diff_hint: '起始速度与障碍密度',
+                start_btn: '▶ 开始',
+                stats: '状态',
+                high_score: '最高分',
+                current_speed: '当前速度',
+                distance: '距离',
+                jump: '跳跃',
+                duck: '蹲下 / 快速落地',
+                restart: '重新开始',
+                pause: '暂停',
+                beginner: '初级',
+                intermediate: '中级',
+                advanced: '高级',
+                press_start: '按 [ ↑ ] 或 [ SPACE ] 开始',
+                press_start_btn: '按 [ START ] 或 [ SPACE ] 开始',
+                game_over: '游戏结束',
+                press_retry: '按 [ R ] 重新开始',
+                paused: '已暂停',
+                press_resume: '按 [ P ] 继续',
+                duck_hint: '蹲下躲避飞鸟'
+            },
+            en: {
+                title: 'T-REX RUN',
+                subtitle: '// DESERT · NO INTERNET',
+                difficulty: 'Difficulty',
+                diff_hint: 'Starting speed & obstacle density',
+                start_btn: '▶ START',
+                stats: 'Status',
+                high_score: 'High Score',
+                current_speed: 'Current Speed',
+                distance: 'Distance',
+                jump: 'Jump',
+                duck: 'Duck / Fast fall',
+                restart: 'Restart',
+                pause: 'Pause',
+                beginner: 'Easy',
+                intermediate: 'Med',
+                advanced: 'Hard',
+                press_start: 'PRESS [ ↑ ] OR [ SPACE ] TO START',
+                press_start_btn: 'CLICK [ START ] OR PRESS [ SPACE ]',
+                game_over: 'GAME OVER',
+                press_retry: 'PRESS [ R ] TO RETRY',
+                paused: 'PAUSED',
+                press_resume: 'PRESS [ P ] TO RESUME',
+                duck_hint: 'Duck to dodge birds'
+            }
+        });
+        theme.init();
+        input.init();
+
+        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
+        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+
+        // ===== Canvas setup =====
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('high-score');
+        const speedEl = document.getElementById('speed-val');
+        const bestScoreEl = document.getElementById('best-score');
+        const curSpeedEl = document.getElementById('cur-speed');
+        const distanceEl = document.getElementById('distance');
+        const btnStart = document.getElementById('btn-start');
+
+        // ===== Difficulty params =====
+        const DIFF_PARAMS = {
+            beginner:     { startSpeed: 4.5, maxSpeed: 9,  accel: 0.0008, gapMin: 340, gapMax: 560, birdChance: 0.10, birdSpeedMul: 1.0 },
+            intermediate: { startSpeed: 6.0, maxSpeed: 12, accel: 0.0012, gapMin: 280, gapMax: 480, birdChance: 0.22, birdSpeedMul: 1.1 },
+            advanced:     { startSpeed: 7.5, maxSpeed: 15, accel: 0.0016, gapMin: 230, gapMax: 400, birdChance: 0.36, birdSpeedMul: 1.25 }
+        };
+
+        let config = { difficulty: 'beginner' };
+        let highScore = 0;
+
+        document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.difficulty = btn.dataset.level;
+            });
+        });
+        btnStart.addEventListener('click', () => game.start());
+
+        // ===== Pixel art sprites =====
+        // Sprite encoded as string rows: '#' = fill, '.' = empty.
+        // We render with pixel scale 2 for crisp pixelated look.
+
+        // Dino sprites (≈24 wide x 24 tall). Designed as running bipedal T-Rex facing right.
+        const DINO_RUN_A = [
+            "...........##########.",
+            "..........############",
+            "..........############",
+            "..........############",
+            "..........#####.#####.",
+            "..........############",
+            "...........##########.",
+            "............########..",
+            "............########..",
+            "#..........########...",
+            "##.........########...",
+            "###........########...",
+            "####.......########...",
+            "####.......######.....",
+            "###.......######......",
+            "##.......######.......",
+            "##......######........",
+            "##....######..........",
+            "##...#######..........",
+            "##..########..........",
+            "##..########..........",
+            "##..########..........",
+            "##..########..........",
+            ".....######..........."
+        ];
+
+        const DINO_RUN_B = [
+            "...........##########.",
+            "..........############",
+            "..........############",
+            "..........############",
+            "..........#####.#####.",
+            "..........############",
+            "...........##########.",
+            "............########..",
+            "............########..",
+            "#..........########...",
+            "##.........########...",
+            "###........########...",
+            "####.......########...",
+            "####.......######.....",
+            "###.......######......",
+            "##.......######.......",
+            "##......######........",
+            "##....######..........",
+            "##...#######..........",
+            "##..########..........",
+            "##..########..........",
+            ".....######...........",
+            "....######............",
+            "....######............"
+        ];
+
+        const DINO_JUMP = [
+            "...........##########.",
+            "..........############",
+            "..........############",
+            "..........############",
+            "..........#####.#####.",
+            "..........############",
+            "...........##########.",
+            "............########..",
+            "............########..",
+            "#..........########...",
+            "##.........########...",
+            "###........########...",
+            "####.......########...",
+            "####.......######.....",
+            "###.......######......",
+            "##.......######.......",
+            "##......######........",
+            "##....######..........",
+            "##...#######..........",
+            "##..########..........",
+            "##..########..........",
+            "##..########..........",
+            "##..########..........",
+            ".....######..........."
+        ];
+
+        const DINO_DUCK_A = [
+            "........................",
+            "........................",
+            "........................",
+            "........................",
+            "...........##########...",
+            "..........############..",
+            "..........############..",
+            "..........############..",
+            "..........#####.#####...",
+            "..........############..",
+            "...........##########...",
+            "#.........###########...",
+            "##........###########...",
+            "###.......###########...",
+            "####......##########....",
+            "#####.....##########....",
+            "######....##########....",
+            "#######..###########....",
+            "########################",
+            "########################",
+            "..######....######......",
+            "..######....######......",
+            "........................",
+            "........................"
+        ];
+
+        const DINO_DUCK_B = [
+            "........................",
+            "........................",
+            "........................",
+            "........................",
+            "...........##########...",
+            "..........############..",
+            "..........############..",
+            "..........############..",
+            "..........#####.#####...",
+            "..........############..",
+            "...........##########...",
+            "#.........###########...",
+            "##........###########...",
+            "###.......###########...",
+            "####......##########....",
+            "#####.....##########....",
+            "######....##########....",
+            "#######..###########....",
+            "########################",
+            "########################",
+            ".######....######.......",
+            ".######....######.......",
+            "........................",
+            "........................"
+        ];
+
+        const DINO_DEAD = DINO_JUMP; // Reuse jump pose; we'll draw an X eye overlay in code.
+
+        // Cactus sprites — small (single)
+        const CACTUS_SMALL = [
+            "..##..",
+            "..##..",
+            "######",
+            "#####.",
+            "######",
+            ".##...",
+            ".##.##",
+            ".##.##",
+            ".##.##",
+            ".##.##",
+            ".##.##",
+            "######",
+            "######",
+            "######",
+            "######",
+            ".##...",
+            ".##...",
+            ".##...",
+            ".##...",
+            ".##..."
+        ];
+
+        // Cactus — medium cluster of two
+        const CACTUS_MED = [
+            "..##.......##..",
+            "..##.......##..",
+            "######....###..",
+            "#####.....####.",
+            "######....#####",
+            ".##........##..",
+            ".##.##.....##..",
+            ".##.##.....##.##",
+            ".##.##.....##.##",
+            ".##.##.....##.##",
+            ".##.##.....##.##",
+            ".##.##.....######",
+            "######.....######",
+            "######.....######",
+            "######.....######",
+            ".##..........##.",
+            ".##..........##.",
+            ".##..........##.",
+            ".##..........##.",
+            ".##..........##."
+        ];
+
+        // Cactus — large cluster of three
+        const CACTUS_LARGE = [
+            "..##.......##......##..",
+            "..##.......##......##..",
+            "######....###.....####.",
+            "#####.....####....#####",
+            "######....######..#####",
+            ".##........##.....##...",
+            ".##.##.....##.....##.##",
+            ".##.##.....##.....##.##",
+            ".##.##.....##.....##.##",
+            ".##.##.....##.....##.##",
+            ".##.##.....##.....##.##",
+            ".##.##.....#######..###",
+            "######.....#######..###",
+            "######.....#######..###",
+            "######.....#######..###",
+            ".##..........##......##",
+            ".##..........##......##",
+            ".##..........##......##",
+            ".##..........##......##",
+            ".##..........##......##"
+        ];
+
+        // Bird sprite — two frames (wings up / wings down)
+        const BIRD_A = [
+            "............",
+            "............",
+            "............",
+            "............",
+            "............",
+            "##..........",
+            "####........",
+            "######......",
+            "##########..",
+            "############",
+            ".###########",
+            "..#######.##",
+            "...####..##.",
+            "....##......"
+        ];
+
+        const BIRD_B = [
+            "............",
+            "............",
+            "............",
+            "##..........",
+            "####........",
+            "######......",
+            "##########..",
+            "############",
+            ".###########",
+            "..#######.##",
+            "...####..##.",
+            "....##......",
+            "............",
+            "............"
+        ];
+
+        // Cloud sprite
+        const CLOUD = [
+            "..........#####............",
+            ".........#######...........",
+            "########.#########.........",
+            "##########################.",
+            "###########################",
+            "..#########################",
+            "....#####################..",
+            "......##################...",
+            "........###############...."
+        ];
+
+        // Convert string sprite to {w, h, pixels} once for fast draw.
+        function makeSprite(rows) {
+            const h = rows.length;
+            const w = rows[0].length;
+            return { w, h, rows };
+        }
+
+        const SPR = {
+            runA: makeSprite(DINO_RUN_A),
+            runB: makeSprite(DINO_RUN_B),
+            jump: makeSprite(DINO_JUMP),
+            duckA: makeSprite(DINO_DUCK_A),
+            duckB: makeSprite(DINO_DUCK_B),
+            cactSmall: makeSprite(CACTUS_SMALL),
+            cactMed: makeSprite(CACTUS_MED),
+            cactLarge: makeSprite(CACTUS_LARGE),
+            birdA: makeSprite(BIRD_A),
+            birdB: makeSprite(BIRD_B),
+            cloud: makeSprite(CLOUD)
+        };
+
+        function drawSprite(sprite, x, y, scale, color) {
+            ctx.fillStyle = color;
+            const rows = sprite.rows;
+            for (let r = 0; r < sprite.h; r++) {
+                const line = rows[r];
+                for (let c = 0; c < sprite.w; c++) {
+                    if (line[c] === '#') {
+                        ctx.fillRect(x + c * scale, y + r * scale, scale, scale);
+                    }
+                }
+            }
+        }
+
+        // ===== Game state =====
+        const GROUND_Y = 250;        // y of the ground line (top of the floor)
+        const DINO_X = 60;           // fixed dinosaur x
+        const PIXEL = 2;             // sprite pixel scale
+
+        const game = {
+            state: 'MENU',
+            dino: null,
+            obstacles: [],
+            clouds: [],
+            speed: 0,
+            distance: 0,
+            score: 0,
+            spawnTimer: 0,
+            groundOffset: 0,
+            animTimer: 0,
+            birdFlapTimer: 0,
+            birdFrame: 0,
+            runFrame: 0,
+            paused: false,
+            params: DIFF_PARAMS.beginner,
+            lastJumpKeyHandled: false,
+            lastDuckKeyHandled: false,
+
+            start() {
+                this.params = DIFF_PARAMS[config.difficulty];
+                this.state = 'PLAYING';
+                this.paused = false;
+                this.speed = this.params.startSpeed;
+                this.distance = 0;
+                this.score = 0;
+                this.spawnTimer = 60;
+                this.animTimer = 0;
+                this.birdFlapTimer = 0;
+                this.birdFrame = 0;
+                this.runFrame = 0;
+                this.obstacles = [];
+                this.clouds = [];
+                // Seed some clouds
+                for (let i = 0; i < 3; i++) {
+                    this.clouds.push({
+                        x: randInt(100, W - 100) + i * 300,
+                        y: randInt(30, 110),
+                        scale: randInt(1, 2)
+                    });
+                }
+                this.dino = {
+                    x: DINO_X,
+                    y: GROUND_Y - SPR.runA.h * PIXEL,
+                    w: SPR.runA.w * PIXEL,
+                    h: SPR.runA.h * PIXEL,
+                    vy: 0,
+                    isJumping: false,
+                    isDucking: false
+                };
+                btnStart.disabled = true;
+                this.updateHud();
+            },
+
+            jump() {
+                if (this.state !== 'PLAYING') return;
+                const d = this.dino;
+                if (!d.isJumping) {
+                    d.vy = -12.5;
+                    d.isJumping = true;
+                    d.isDucking = false;
+                }
+            },
+
+            duck(on) {
+                if (this.state !== 'PLAYING') return;
+                const d = this.dino;
+                if (d.isJumping) {
+                    // While airborne: holding down = fast-fall
+                    if (on && d.vy < 8) d.vy = 8;
+                    return;
+                }
+                d.isDucking = on;
+            },
+
+            spawnObstacle() {
+                const p = this.params;
+                let type;
+                if (Math.random() < p.birdChance) {
+                    type = 'bird';
+                } else {
+                    const r = Math.random();
+                    if (r < 0.5) type = 'cactus_small';
+                    else if (r < 0.82) type = 'cactus_med';
+                    else type = 'cactus_large';
+                }
+
+                let sprite, y, w, h;
+                if (type === 'cactus_small') {
+                    sprite = SPR.cactSmall;
+                    y = GROUND_Y - sprite.h * PIXEL + 2;
+                } else if (type === 'cactus_med') {
+                    sprite = SPR.cactMed;
+                    y = GROUND_Y - sprite.h * PIXEL + 2;
+                } else if (type === 'cactus_large') {
+                    sprite = SPR.cactLarge;
+                    y = GROUND_Y - sprite.h * PIXEL + 2;
+                } else {
+                    // bird — pick one of 3 altitudes
+                    sprite = SPR.birdA;
+                    const altitudes = [GROUND_Y - 70, GROUND_Y - 50, GROUND_Y - 35];
+                    y = pick(altitudes) - sprite.h * PIXEL / 2;
+                }
+                w = sprite.w * PIXEL;
+                h = sprite.h * PIXEL;
+                this.obstacles.push({ x: W + 20, y, w, h, type, sprite, phase: randInt(0, 99) });
+            },
+
+            // Tighter hitbox — shrink by ~15% on each side
+            getHitbox(o) {
+                const pad = 0.15;
+                return {
+                    x: o.x + o.w * pad,
+                    y: o.y + o.h * pad,
+                    w: o.w * (1 - 2 * pad),
+                    h: o.h * (1 - 2 * pad)
+                };
+            },
+
+            getDinoHitbox() {
+                const d = this.dino;
+                const h = d.isDucking ? SPR.duckA.h * PIXEL : SPR.runA.h * PIXEL;
+                const w = d.isDucking ? SPR.duckA.w * PIXEL : SPR.runA.w * PIXEL;
+                const box = { x: d.x, y: d.y, w, h };
+                return this.getHitbox(box);
+            },
+
+            rectHit(a, b) {
+                return a.x < b.x + b.w
+                    && a.x + a.w > b.x
+                    && a.y < b.y + b.h
+                    && a.y + a.h > b.y;
+            },
+
+            update(dt) {
+                // dt is in ms; normalize to a per-frame factor (we target ~60fps => dt~16.67)
+                const f = Math.min(dt / 16.67, 2.5);
+
+                // Handle global hotkeys
+                if (this.state === 'MENU') {
+                    if (input.pressed('ArrowUp', ' ', 'w', 'W', 'Enter')) this.start();
+                    return;
+                }
+                if (this.state === 'GAMEOVER') {
+                    if (input.pressed('r', 'R')) this.start();
+                    return;
+                }
+                if (this.state === 'PLAYING') {
+                    if (input.pressed('p', 'P')) {
+                        this.paused = !this.paused;
+                    }
+                    if (this.paused) return;
+
+                    // Jump (edge-triggered so holding doesn't re-bounce after landing)
+                    const wantJump = input.pressed('ArrowUp', ' ', 'w', 'W');
+                    if (wantJump && !this.lastJumpKeyHandled) {
+                        this.jump();
+                        this.lastJumpKeyHandled = true;
+                    }
+                    if (!wantJump) this.lastJumpKeyHandled = false;
+
+                    // Duck (held)
+                    this.duck(input.pressed('ArrowDown', 's', 'S'));
+
+                    this.tickPlay(f);
+                }
+            },
+
+            tickPlay(f) {
+                const p = this.params;
+                const d = this.dino;
+
+                // Accelerate speed slowly toward max
+                if (this.speed < p.maxSpeed) {
+                    this.speed = Math.min(p.maxSpeed, this.speed + p.accel * f * 16.67);
+                }
+
+                // Distance / score
+                this.distance += this.speed * f;
+                const newScore = Math.floor(this.distance / 5);
+                if (newScore !== this.score) {
+                    // Blink HI score on milestone every 100 points
+                    if (Math.floor(newScore / 100) > Math.floor(this.score / 100)) {
+                        // small visual chirp — could flash; we just nudge
+                    }
+                    this.score = newScore;
+                }
+
+                // Move ground texture
+                this.groundOffset = (this.groundOffset + this.speed * f) % 24;
+
+                // Animate legs
+                this.animTimer += this.speed * f;
+                if (this.animTimer > 28) {
+                    this.animTimer = 0;
+                    this.runFrame ^= 1;
+                }
+
+                // Animate bird wings
+                this.birdFlapTimer += f;
+                if (this.birdFlapTimer > 8) {
+                    this.birdFlapTimer = 0;
+                    this.birdFrame ^= 1;
+                }
+
+                // Physics — gravity
+                if (d.isJumping) {
+                    d.vy += 0.7 * f;
+                    d.y += d.vy * f;
+                    const floorY = GROUND_Y - SPR.runA.h * PIXEL;
+                    if (d.y >= floorY) {
+                        d.y = floorY;
+                        d.vy = 0;
+                        d.isJumping = false;
+                    }
+                } else {
+                    // Stay glued when running/ducking
+                    const baseH = d.isDucking ? SPR.duckA.h * PIXEL : SPR.runA.h * PIXEL;
+                    d.y = GROUND_Y - baseH;
+                }
+
+                // Update dino box (used for collision)
+                d.h = d.isDucking ? SPR.duckA.h * PIXEL : SPR.runA.h * PIXEL;
+                d.w = d.isDucking ? SPR.duckA.w * PIXEL : SPR.runA.w * PIXEL;
+
+                // Spawn obstacles — based on last obstacle position
+                const last = this.obstacles[this.obstacles.length - 1];
+                const speedFactor = clamp(this.speed / p.startSpeed, 1, 2.2);
+                const minGap = (p.gapMin / speedFactor);
+                const maxGap = (p.gapMax / speedFactor);
+                if (!last || last.x < W - randInt(minGap, maxGap)) {
+                    this.spawnObstacle();
+                }
+
+                // Move obstacles
+                for (const o of this.obstacles) {
+                    const mul = o.type === 'bird' ? this.params.birdSpeedMul : 1;
+                    o.x -= this.speed * f * mul;
+                    // Bird vertical bob
+                    if (o.type === 'bird') {
+                        o.phase += f;
+                    }
+                }
+                this.obstacles = this.obstacles.filter(o => o.x + o.w > -40);
+
+                // Move clouds (parallax)
+                for (const c of this.clouds) {
+                    c.x -= this.speed * 0.35 * f;
+                }
+                this.clouds = this.clouds.filter(c => c.x > -120);
+                while (this.clouds.length < 4) {
+                    this.clouds.push({
+                        x: W + randInt(0, 200),
+                        y: randInt(30, 110),
+                        scale: randInt(1, 2)
+                    });
+                }
+
+                // Collision
+                const dinoHB = this.getDinoHitbox();
+                for (const o of this.obstacles) {
+                    const ob = this.getHitbox(o);
+                    if (this.rectHit(dinoHB, ob)) {
+                        this.gameOver();
+                        return;
+                    }
+                }
+
+                this.updateHud();
+            },
+
+            gameOver() {
+                this.state = 'GAMEOVER';
+                btnStart.disabled = false;
+                if (this.score > highScore) {
+                    highScore = this.score;
+                }
+                this.updateHud();
+            },
+
+            updateHud() {
+                const s = String(this.score).padStart(5, '0');
+                scoreEl.textContent = s;
+                highScoreEl.textContent = String(highScore).padStart(5, '0');
+                bestScoreEl.textContent = String(highScore).padStart(5, '0');
+                const ratio = (this.speed / this.params.startSpeed).toFixed(1);
+                speedEl.textContent = ratio + 'x';
+                curSpeedEl.textContent = ratio + 'x';
+                distanceEl.textContent = Math.floor(this.distance / 10) + ' m';
+            },
+
+            // ===== Drawing =====
+            getPalette() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                return {
+                    bg: isDark ? '#1a1a1a' : '#f7f7f7',
+                    fg: isDark ? '#e0e0e0' : '#535353',
+                    fgSoft: isDark ? '#9c9c9c' : '#7a7a7a',
+                    line: isDark ? '#5a5a5a' : '#535353',
+                    warn: isDark ? '#ff6b66' : '#c0413c'
+                };
+            },
+
+            draw() {
+                const pal = this.getPalette();
+
+                // Background
+                ctx.fillStyle = pal.bg;
+                ctx.fillRect(0, 0, W, H);
+
+                // Clouds (parallax)
+                for (const c of this.clouds) {
+                    drawSprite(SPR.cloud, c.x, c.y, c.scale, pal.fgSoft);
+                }
+
+                // Ground line + dashed pattern
+                ctx.strokeStyle = pal.line;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, GROUND_Y + 12);
+                ctx.lineTo(W, GROUND_Y + 12);
+                ctx.stroke();
+
+                // Ground texture (small pebbles / dashes) scrolling
+                ctx.fillStyle = pal.line;
+                const gy = GROUND_Y + 18;
+                for (let x = -this.groundOffset; x < W; x += 24) {
+                    ctx.fillRect(x, gy, 4, 2);
+                    ctx.fillRect(x + 10, gy + 4, 3, 2);
+                    ctx.fillRect(x + 18, gy - 2, 2, 2);
+                }
+
+                // Obstacles
+                for (const o of this.obstacles) {
+                    let sprite = o.sprite;
+                    if (o.type === 'bird') {
+                        sprite = this.birdFrame === 0 ? SPR.birdA : SPR.birdB;
+                        const bob = Math.sin(o.phase * 0.15) * 3;
+                        drawSprite(sprite, o.x, o.y + bob, PIXEL, pal.fg);
+                    } else {
+                        drawSprite(sprite, o.x, o.y, PIXEL, pal.fg);
+                    }
+                }
+
+                // Dino
+                if (this.dino) this.drawDino(pal);
+
+                // Overlays
+                if (this.state === 'MENU') {
+                    this.drawOverlay();
+                    this.drawText(i18n.t('title'), W / 2, H / 2 - 30, 38, pal.fg, true);
+                    this.drawText('// 2014 CHROME', W / 2, H / 2 + 4, 14, pal.fgSoft, false);
+                    this.drawText(i18n.t('press_start_btn'), W / 2, H / 2 + 50, 13, pal.fgSoft, false);
+                } else if (this.state === 'GAMEOVER') {
+                    this.drawText(i18n.t('game_over'), W / 2, H / 2 - 16, 40, pal.warn, true);
+                    this.drawText(i18n.t('press_retry'), W / 2, H / 2 + 30, 13, pal.fgSoft, false);
+                } else if (this.state === 'PLAYING' && this.paused) {
+                    this.drawOverlay();
+                    this.drawText(i18n.t('paused'), W / 2, H / 2 - 10, 38, pal.fg, true);
+                    this.drawText(i18n.t('press_resume'), W / 2, H / 2 + 30, 13, pal.fgSoft, false);
+                }
+            },
+
+            drawOverlay() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.10)';
+                ctx.fillRect(0, 0, W, H);
+            },
+
+            drawText(text, cx, y, size, color, glow) {
+                ctx.fillStyle = color;
+                ctx.font = `${size}px "VT323", "Share Tech Mono", monospace`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+                if (glow) {
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 8;
+                }
+                ctx.fillText(text, cx, y);
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'start';
+            },
+
+            drawDino(pal) {
+                const d = this.dino;
+                let sprite;
+                if (this.state === 'GAMEOVER') {
+                    sprite = SPR.jump;
+                    drawSprite(sprite, d.x, d.y, PIXEL, pal.fg);
+                    // Draw X eyes overlay
+                    ctx.fillStyle = pal.bg;
+                    const eyeX = d.x + 13 * PIXEL;
+                    const eyeY = d.y + 4 * PIXEL;
+                    ctx.fillRect(eyeX, eyeY, PIXEL * 3, PIXEL * 3);
+                    ctx.fillStyle = pal.warn;
+                    ctx.fillRect(eyeX, eyeY, PIXEL, PIXEL);
+                    ctx.fillRect(eyeX + 2 * PIXEL, eyeY + 2 * PIXEL, PIXEL, PIXEL);
+                    ctx.fillRect(eyeX, eyeY + 2 * PIXEL, PIXEL, PIXEL);
+                    ctx.fillRect(eyeX + 2 * PIXEL, eyeY, PIXEL, PIXEL);
+                    return;
+                }
+                if (d.isJumping) {
+                    sprite = SPR.jump;
+                } else if (d.isDucking) {
+                    sprite = this.runFrame === 0 ? SPR.duckA : SPR.duckB;
+                    // Duck sprite y is anchored differently (taller canvas); align to ground
+                    const duckH = SPR.duckA.h * PIXEL;
+                    drawSprite(sprite, d.x, GROUND_Y - duckH + 4, PIXEL, pal.fg);
+                    return;
+                } else {
+                    sprite = this.runFrame === 0 ? SPR.runA : SPR.runB;
+                }
+                drawSprite(sprite, d.x, d.y, PIXEL, pal.fg);
+            }
+        };
+
+        loop.start(
+            (dt) => game.update(dt),
+            () => game.draw()
+        );
+
+        // Initial HUD render
+        game.updateHud();
+    </script>
+</body>
+</html>

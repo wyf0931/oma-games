@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PONG — 双人乒乓球</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        /* Atari 1972 monochrome — black & white only */
+        :root {
+            --pong-bg: #000;
+            --pong-fg: #f5f5f5;
+            --pong-fg-dim: #8a8a8a;
+            --pong-fg-faint: #3a3a3a;
+            --pong-glow: rgba(245, 245, 245, 0.45);
+            --pong-scan: rgba(0, 0, 0, 0.10);
+
+            --bg-primary: var(--pong-bg);
+            --bg-secondary: #0a0a0a;
+            --bg-card: #050505;
+            --text-primary: var(--pong-fg);
+            --text-secondary: var(--pong-fg-dim);
+            --text-dim: var(--pong-fg-faint);
+            --border: #2a2a2a;
+            --border-strong: var(--pong-fg);
+            --accent: var(--pong-fg);
+            --accent-strong: var(--pong-fg);
+            --accent-contrast: #000;
+        }
+
+        body {
+            font-family: 'VT323', 'Share Tech Mono', monospace;
+            background: var(--pong-bg);
+            color: var(--pong-fg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* CRT scanlines — subtle for Pong's clean look */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                var(--pong-scan) 2px,
+                var(--pong-scan) 3px
+            );
+        }
+
+        /* soft vignette */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 101;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                transparent 65%,
+                rgba(0, 0, 0, 0.35) 100%
+            );
+        }
+
+        #top-bar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 50;
+            pointer-events: none;
+        }
+        #top-bar > * { pointer-events: auto; }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid var(--pong-fg-faint);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--pong-fg);
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        .nav-back:hover {
+            background: var(--pong-fg);
+            color: var(--pong-bg);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--pong-fg-faint);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--pong-fg);
+            font-family: 'VT323', monospace;
+            font-size: 13px;
+        }
+        .icon-btn:hover {
+            background: var(--pong-fg);
+            color: var(--pong-bg);
+        }
+
+        #app {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pong-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--pong-fg-faint);
+            box-shadow:
+                inset 0 0 30px rgba(245, 245, 245, 0.02),
+                0 0 20px rgba(245, 245, 245, 0.05);
+            position: relative;
+        }
+
+        #game-area {
+            padding: 16px;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 16px 16px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .score {
+            font-size: 56px;
+            color: var(--pong-fg);
+            text-shadow: 0 0 12px var(--pong-glow);
+            letter-spacing: 4px;
+            line-height: 1;
+        }
+
+        .vs {
+            font-size: 14px;
+            color: var(--pong-fg-dim);
+            letter-spacing: 3px;
+        }
+
+        canvas {
+            display: block;
+            background: var(--pong-bg);
+            border: 1px solid var(--pong-fg-faint);
+            box-shadow: 0 0 30px rgba(245, 245, 245, 0.06);
+        }
+
+        #config-panel {
+            width: 280px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 16px;
+            color: var(--pong-fg);
+            text-shadow: 0 0 8px var(--pong-glow);
+            letter-spacing: 2px;
+            text-align: center;
+            padding-bottom: 14px;
+            border-bottom: 1px dashed var(--pong-fg-faint);
+        }
+
+        .config-group {
+            background: var(--bg-secondary);
+            border: 1px solid var(--pong-fg-faint);
+            padding: 12px;
+        }
+
+        .config-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--pong-fg-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-family: 'VT323', monospace;
+        }
+
+        .config-group label::before {
+            content: '> ';
+            color: var(--pong-fg);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--pong-fg-faint);
+            margin-top: 6px;
+            letter-spacing: 1px;
+            font-family: 'VT323', monospace;
+        }
+
+        /* mode button group — reuses .oma-diff-group layout, two buttons */
+        .mode-group {
+            display: flex;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 9px 0;
+            border: 1px solid var(--pong-fg-faint);
+            background: var(--bg-secondary);
+            color: var(--pong-fg-dim);
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+        }
+        .mode-btn:first-child { border-radius: 0; }
+        .mode-btn + .mode-btn { border-left: none; }
+        .mode-btn:hover {
+            color: var(--pong-fg);
+            border-color: var(--pong-fg);
+        }
+        .mode-btn.active {
+            background: var(--pong-fg);
+            color: var(--pong-bg);
+            border-color: var(--pong-fg);
+            box-shadow: 0 0 10px var(--pong-glow);
+        }
+
+        /* difficulty group — themed black/white */
+        .oma-diff-btn {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            background: var(--bg-secondary);
+            border-color: var(--pong-fg-faint);
+            color: var(--pong-fg-dim);
+        }
+        .oma-diff-btn.active {
+            background: var(--pong-fg);
+            color: var(--pong-bg);
+            border-color: var(--pong-fg);
+            box-shadow: 0 0 10px var(--pong-glow);
+        }
+
+        #btn-start {
+            padding: 14px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            letter-spacing: 3px;
+            background: transparent;
+            color: var(--pong-fg);
+            border: 1px solid var(--pong-fg);
+            text-shadow: 0 0 6px var(--pong-glow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #btn-start:hover:not(:disabled) {
+            background: var(--pong-fg);
+            color: var(--pong-bg);
+            text-shadow: none;
+            box-shadow: 0 0 20px var(--pong-glow);
+        }
+        #btn-start:disabled {
+            color: var(--pong-fg-faint);
+            border-color: var(--pong-fg-faint);
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            font-size: 13px;
+            font-family: 'VT323', monospace;
+        }
+        .stat-grid .lbl { color: var(--pong-fg-dim); }
+        .stat-grid .val { color: var(--pong-fg); text-align: right; }
+
+        #controls-help {
+            font-size: 13px;
+            line-height: 1.9;
+            color: var(--pong-fg-dim);
+            text-align: center;
+            padding-top: 12px;
+            border-top: 1px dashed var(--pong-fg-faint);
+            font-family: 'VT323', monospace;
+        }
+
+        .oma-key {
+            background: var(--bg-secondary);
+            border-color: var(--pong-fg-faint);
+            color: var(--pong-fg);
+            font-family: 'VT323', monospace;
+            font-size: 12px;
+        }
+
+        .winner-line {
+            color: var(--pong-fg);
+            text-shadow: 0 0 8px var(--pong-glow);
+        }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; }
+            #config-panel { width: 100%; max-width: 800px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-bar">
+        <a href="index.html" class="nav-back">◄ oma-games</a>
+        <div class="header-controls">
+            <button class="icon-btn" id="lang-btn" title="切换语言">中/EN</button>
+            <button class="icon-btn" id="theme-btn" title="切换主题">◐</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="pong-panel" id="game-area">
+            <div id="hud">
+                <span class="score" id="score-l">0</span>
+                <span class="vs" data-i18n="vs">VS</span>
+                <span class="score" id="score-r">0</span>
+            </div>
+            <canvas id="canvas" width="800" height="600"></canvas>
+        </div>
+
+        <div class="pong-panel" id="config-panel">
+            <div class="panel-title" data-i18n="title">PONG</div>
+
+            <div class="config-group">
+                <label data-i18n="mode">模式</label>
+                <div class="mode-group" id="mode-group">
+                    <button class="mode-btn active" data-mode="2p" data-i18n="mode_2p">双人</button>
+                    <button class="mode-btn" data-mode="ai" data-i18n="mode_ai">人机</button>
+                </div>
+                <div class="hint" data-i18n="mode_hint">人机模式：右拍由 AI 控制</div>
+            </div>
+
+            <div class="config-group">
+                <label data-i18n="difficulty">难度</label>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced">高级</button>
+                </div>
+                <div class="hint" data-i18n="diff_hint">球速与 AI 反应速度</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="start">▶ START</span></button>
+
+            <div class="config-group">
+                <label data-i18n="stats">状态</label>
+                <div class="stat-grid">
+                    <span class="lbl" data-i18n="first_to">先到</span>
+                    <span class="val">11</span>
+                    <span class="lbl" data-i18n="rallies">回合数</span>
+                    <span class="val" id="rallies">0</span>
+                    <span class="lbl" data-i18n="ball_speed">球速</span>
+                    <span class="val" id="ball-speed">—</span>
+                    <span class="lbl" data-i18n="max_rally">最长回合</span>
+                    <span class="val" id="max-rally">0</span>
+                </div>
+            </div>
+
+            <div id="controls-help">
+                <span class="oma-key">W</span> <span class="oma-key">S</span>
+                <span data-i18n="p1_control">玩家 1（左）</span><br>
+                <span class="oma-key">↑</span> <span class="oma-key">↓</span>
+                <span data-i18n="p2_control">玩家 2（右）</span><br>
+                <span class="oma-key">SPACE</span>
+                <span data-i18n="start_key">开始 / 重玩</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+        const { i18n, theme, input, loop, fsm, clamp } = OmaGames;
+
+        i18n.load({
+            zh: {
+                title: 'PONG',
+                vs: 'VS',
+                mode: '模式',
+                mode_2p: '双人',
+                mode_ai: '人机',
+                mode_hint: '人机模式：右拍由 AI 控制',
+                difficulty: '难度',
+                diff_hint: '球速与 AI 反应速度',
+                start: '▶ 开始游戏',
+                stats: '状态',
+                first_to: '先到',
+                rallies: '回合数',
+                ball_speed: '球速',
+                max_rally: '最长回合',
+                p1_control: '玩家 1（左）',
+                p2_control: '玩家 2（右）',
+                start_key: '开始 / 重玩',
+                menu_line_1: '经典 1972',
+                menu_line_2: 'ATARI PONG',
+                press_start: '按 [ SPACE ] 或点击 [ 开始 ]',
+                win_p1: '玩家 1 获胜',
+                win_p2: '玩家 2 获胜',
+                win_ai: 'AI 获胜',
+                press_replay: '按 [ SPACE ] 再来一局',
+                rally_count: '回合 %d'
+            },
+            en: {
+                title: 'PONG',
+                vs: 'VS',
+                mode: 'Mode',
+                mode_2p: '2-Player',
+                mode_ai: 'vs AI',
+                mode_hint: 'AI mode: right paddle controlled by computer',
+                difficulty: 'Difficulty',
+                diff_hint: 'Ball speed & AI reaction',
+                start: '▶ START',
+                stats: 'Status',
+                first_to: 'First to',
+                rallies: 'Rallies',
+                ball_speed: 'Ball Speed',
+                max_rally: 'Longest Rally',
+                p1_control: 'Player 1 (Left)',
+                p2_control: 'Player 2 (Right)',
+                start_key: 'Start / Replay',
+                menu_line_1: 'CLASSIC 1972',
+                menu_line_2: 'ATARI PONG',
+                press_start: 'PRESS [ SPACE ] OR CLICK [ START ]',
+                win_p1: 'PLAYER 1 WINS',
+                win_p2: 'PLAYER 2 WINS',
+                win_ai: 'COMPUTER WINS',
+                press_replay: 'PRESS [ SPACE ] FOR REMATCH'
+            }
+        });
+        theme.init();
+        input.init({ preventKeys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 's'] });
+
+        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
+        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const scoreLEl = document.getElementById('score-l');
+        const scoreREl = document.getElementById('score-r');
+        const ralliesEl = document.getElementById('rallies');
+        const ballSpeedEl = document.getElementById('ball-speed');
+        const maxRallyEl = document.getElementById('max-rally');
+        const btnStart = document.getElementById('btn-start');
+
+        // ===== Difficulty params =====
+        // baseSpeed: initial ball horizontal speed (px/frame at 60fps reference)
+        // speedup: multiplier applied on each paddle hit
+        // aiLerp: how aggressively AI tracks the ball per frame (0..1) — lower = lazier
+        // aiMaxSpeed: hard cap on AI movement (px/frame) — ensures AI has weaknesses
+        const DIFF_PARAMS = {
+            beginner:     { baseSpeed: 4.5, speedup: 1.04, aiLerp: 0.045, aiMaxSpeed: 4.0 },
+            intermediate: { baseSpeed: 6.0, speedup: 1.05, aiLerp: 0.075, aiMaxSpeed: 5.5 },
+            advanced:     { baseSpeed: 7.5, speedup: 1.06, aiLerp: 0.110, aiMaxSpeed: 7.5 }
+        };
+
+        // ===== FSM: MENU → PLAYING → WIN =====
+        const machine = fsm({
+            MENU:    { start: 'PLAYING' },
+            PLAYING: { win: 'WIN' },
+            WIN:     { restart: 'PLAYING', menu: 'MENU' }
+        }, 'MENU');
+
+        let config = { difficulty: 'beginner', mode: '2p' };
+        let maxRally = 0;
+
+        // mode group
+        document.querySelectorAll('#mode-group .mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#mode-group .mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.mode = btn.dataset.mode;
+            });
+        });
+
+        // difficulty group
+        document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.difficulty = btn.dataset.level;
+            });
+        });
+
+        // ===== Constants =====
+        const PADDLE_W = 12;
+        const PADDLE_H = 90;
+        const PADDLE_MARGIN = 28;
+        const PADDLE_SPEED = 7.5;     // human paddle speed (px/frame)
+        const BALL_SIZE = 12;
+        const WIN_SCORE = 11;
+        const TOP_WALL = 0;
+        const BOTTOM_WALL = H;
+
+        // ===== Game state =====
+        const game = {
+            paddleL: { x: PADDLE_MARGIN, y: H / 2 - PADDLE_H / 2, w: PADDLE_W, h: PADDLE_H },
+            paddleR: { x: W - PADDLE_MARGIN - PADDLE_W, y: H / 2 - PADDLE_H / 2, w: PADDLE_W, h: PADDLE_H },
+            ball: { x: W / 2 - BALL_SIZE / 2, y: H / 2 - BALL_SIZE / 2, vx: 0, vy: 0 },
+            scoreL: 0,
+            scoreR: 0,
+            rally: 0,
+            params: DIFF_PARAMS.beginner,
+            serveDelay: 0,    // frames to wait before serving after a point
+
+            start() {
+                this.params = DIFF_PARAMS[config.difficulty];
+                this.scoreL = 0;
+                this.scoreR = 0;
+                this.rally = 0;
+                this.resetPaddles();
+                this.serveBall(Math.random() < 0.5 ? -1 : 1, 60);
+                machine.set('PLAYING');
+                btnStart.disabled = true;
+                this.updateHud();
+            },
+
+            resetPaddles() {
+                this.paddleL.y = H / 2 - PADDLE_H / 2;
+                this.paddleR.y = H / 2 - PADDLE_H / 2;
+            },
+
+            // Reset ball to center, choose direction dir (-1 left, +1 right), with a small delay
+            serveBall(dir, delayFrames = 45) {
+                this.ball.x = W / 2 - BALL_SIZE / 2;
+                this.ball.y = H / 2 - BALL_SIZE / 2;
+                const speed = this.params.baseSpeed;
+                // small random vertical component so each serve varies
+                const vy = (Math.random() * 2 - 1) * speed * 0.35;
+                const vxSign = dir >= 0 ? 1 : -1;
+                const vx = vxSign * Math.sqrt(Math.max(1, speed * speed - vy * vy));
+                this.ball.vx = vx;
+                this.ball.vy = vy;
+                this.serveDelay = delayFrames;
+            },
+
+            update(dt) {
+                // Menu / win transitions handled by SPACE / button
+                if (machine.is('MENU')) {
+                    if (input.pressed(' ')) this.start();
+                    return;
+                }
+                if (machine.is('WIN')) {
+                    if (input.pressed(' ')) this.start();
+                    return;
+                }
+
+                // ===== Paddle L (player 1: W/S) =====
+                if (input.pressed('w', 'W')) this.paddleL.y -= PADDLE_SPEED;
+                if (input.pressed('s', 'S')) this.paddleL.y += PADDLE_SPEED;
+
+                // ===== Paddle R =====
+                if (config.mode === '2p') {
+                    if (input.pressed('ArrowUp')) this.paddleR.y -= PADDLE_SPEED;
+                    if (input.pressed('ArrowDown')) this.paddleR.y += PADDLE_SPEED;
+                } else {
+                    this.updateAI();
+                }
+
+                this.paddleL.y = clamp(this.paddleL.y, 0, H - PADDLE_H);
+                this.paddleR.y = clamp(this.paddleR.y, 0, H - PADDLE_H);
+
+                // serve delay countdown — ball frozen at center
+                if (this.serveDelay > 0) {
+                    this.serveDelay--;
+                    this.updateHud();
+                    return;
+                }
+
+                // ===== Ball movement =====
+                this.ball.x += this.ball.vx;
+                this.ball.y += this.ball.vy;
+
+                // top / bottom wall reflection
+                if (this.ball.y <= TOP_WALL) {
+                    this.ball.y = TOP_WALL;
+                    this.ball.vy = Math.abs(this.ball.vy);
+                } else if (this.ball.y + BALL_SIZE >= BOTTOM_WALL) {
+                    this.ball.y = BOTTOM_WALL - BALL_SIZE;
+                    this.ball.vy = -Math.abs(this.ball.vy);
+                }
+
+                // paddle collisions
+                if (this.ball.vx < 0 && this.hitsPaddle(this.paddleL)) {
+                    this.reflectOff(this.paddleL, +1);
+                } else if (this.ball.vx > 0 && this.hitsPaddle(this.paddleR)) {
+                    this.reflectOff(this.paddleR, -1);
+                }
+
+                // scoring
+                if (this.ball.x + BALL_SIZE < 0) {
+                    // right scores
+                    this.scoreR++;
+                    if (this.rally > maxRally) maxRally = this.rally;
+                    this.rally = 0;
+                    this.checkWin() || this.serveBall(+1);
+                } else if (this.ball.x > W) {
+                    // left scores
+                    this.scoreL++;
+                    if (this.rally > maxRally) maxRally = this.rally;
+                    this.rally = 0;
+                    this.checkWin() || this.serveBall(-1);
+                }
+
+                this.updateHud();
+            },
+
+            // AABB hit test
+            hitsPaddle(paddle) {
+                const b = this.ball;
+                return b.x < paddle.x + paddle.w
+                    && b.x + BALL_SIZE > paddle.x
+                    && b.y < paddle.y + paddle.h
+                    && b.y + BALL_SIZE > paddle.y;
+            },
+
+            // Reflect ball off paddle. dir = +1 means ball now moves right, -1 means left.
+            // Angle: vy = (ballCenterY - paddleCenterY) * ANGLE_K
+            reflectOff(paddle, dir) {
+                const ballCenterY = this.ball.y + BALL_SIZE / 2;
+                const paddleCenterY = paddle.y + paddle.h / 2;
+                const offset = ballCenterY - paddleCenterY;       // px from paddle center
+                const ANGLE_K = 0.2;                              // spec'd reflection constant
+                let newVy = offset * ANGLE_K;
+
+                // current horizontal speed (speeds up on each hit)
+                const curSpeed = Math.hypot(this.ball.vx, this.ball.vy);
+                const newSpeed = Math.min(curSpeed * this.params.speedup, 18);
+                // recompute vx preserving direction & total speed
+                const newVx = dir * Math.sqrt(Math.max(1, newSpeed * newSpeed - newVy * newVy));
+
+                // nudge ball outside paddle to avoid sticky collisions
+                if (dir > 0) this.ball.x = paddle.x + paddle.w + 0.5;
+                else         this.ball.x = paddle.x - BALL_SIZE - 0.5;
+
+                this.ball.vx = newVx;
+                this.ball.vy = newVy;
+                this.rally++;
+            },
+
+            // ===== AI: lerp toward ball's y, capped by max speed =====
+            updateAI() {
+                const target = this.ball.y + BALL_SIZE / 2 - this.paddleR.h / 2;
+                const center = this.paddleR.y;
+                const delta = target - center;
+                // lerp factor: higher = tracks faster; capped movement keeps AI beatable
+                const move = delta * this.params.aiLerp;
+                const clamped = clamp(move, -this.params.aiMaxSpeed, this.params.aiMaxSpeed);
+                this.paddleR.y += clamped;
+            },
+
+            checkWin() {
+                if (this.scoreL >= WIN_SCORE || this.scoreR >= WIN_SCORE) {
+                    if (this.rally > maxRally) maxRally = this.rally;
+                    machine.transition('win');
+                    btnStart.disabled = false;
+                    return true;
+                }
+                return false;
+            },
+
+            updateHud() {
+                scoreLEl.textContent = this.scoreL;
+                scoreREl.textContent = this.scoreR;
+                ralliesEl.textContent = this.rally;
+                maxRallyEl.textContent = maxRally;
+                const speed = Math.hypot(this.ball.vx, this.ball.vy);
+                ballSpeedEl.textContent = this.serveDelay > 0 ? '—' : speed.toFixed(1);
+            },
+
+            // ===== Draw =====
+            draw() {
+                // clear
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, W, H);
+
+                // center dashed line (court divider)
+                this.drawCenterLine();
+
+                // paddles + ball with subtle white glow
+                ctx.shadowColor = 'rgba(245, 245, 245, 0.6)';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#f5f5f5';
+
+                ctx.fillRect(this.paddleL.x, this.paddleL.y, PADDLE_W, PADDLE_H);
+                ctx.fillRect(this.paddleR.x, this.paddleR.y, PADDLE_W, PADDLE_H);
+
+                // ball hidden during serve delay
+                if (this.serveDelay === 0 && machine.is('PLAYING')) {
+                    ctx.fillRect(this.ball.x, this.ball.y, BALL_SIZE, BALL_SIZE);
+                }
+                ctx.shadowBlur = 0;
+
+                // state overlays
+                if (machine.is('MENU')) {
+                    this.drawOverlay();
+                    this.drawCenteredText(i18n.t('menu_line_1'), H / 2 - 70, 22, false, '#8a8a8a');
+                    this.drawCenteredText(i18n.t('menu_line_2'), H / 2 - 30, 36, true);
+                    this.drawCenteredText(i18n.t('press_start'), H / 2 + 60, 16, false, '#8a8a8a');
+                    return;
+                }
+                if (machine.is('WIN')) {
+                    this.drawOverlay();
+                    const winnerKey = this.scoreL >= WIN_SCORE
+                        ? 'win_p1'
+                        : (config.mode === 'ai' ? 'win_ai' : 'win_p2');
+                    this.drawCenteredText(i18n.t(winnerKey), H / 2 - 20, 32, true, '#f5f5f5', 'winner-line');
+                    const scoreStr = `${this.scoreL} : ${this.scoreR}`;
+                    this.drawCenteredText(scoreStr, H / 2 + 30, 48, true);
+                    this.drawCenteredText(i18n.t('press_replay'), H / 2 + 100, 14, false, '#8a8a8a');
+                }
+            },
+
+            drawCenterLine() {
+                ctx.fillStyle = '#f5f5f5';
+                ctx.shadowColor = 'rgba(245, 245, 245, 0.4)';
+                ctx.shadowBlur = 4;
+                const dashH = 16;
+                const gap = 14;
+                for (let y = 8; y < H; y += dashH + gap) {
+                    ctx.fillRect(W / 2 - 2, y, 4, dashH);
+                }
+                ctx.shadowBlur = 0;
+            },
+
+            drawOverlay() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, W, H);
+            },
+
+            drawCenteredText(text, y, size, glow, color, extraClass) {
+                ctx.fillStyle = color || '#f5f5f5';
+                ctx.font = `${size}px "Press Start 2P", monospace`;
+                ctx.textAlign = 'center';
+                if (glow) {
+                    ctx.shadowColor = color || '#f5f5f5';
+                    ctx.shadowBlur = 12;
+                }
+                ctx.fillText(text, W / 2, y);
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'start';
+            }
+        };
+
+        btnStart.addEventListener('click', () => game.start());
+
+        // also allow SPACE to start from menu/win
+        window.addEventListener('keydown', (e) => {
+            if (e.key === ' ' && (machine.is('MENU') || machine.is('WIN'))) {
+                game.start();
+            }
+        });
+
+        // initial HUD draw
+        game.updateHud();
+
+        loop.start(
+            (dt) => game.update(dt),
+            () => game.draw()
+        );
+    </script>
+</body>
+</html>

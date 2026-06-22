@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNAKE — 贪吃蛇</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #a78bfa;
+            --neon-purple-dim: #5b3a8a;
+            --grid-line: #1a1a3a;
+            --neon-bg: #0a0a1a;
+            --neon-bg-2: #14142a;
+            --neon-danger: #ff2a2a;
+
+            --bg-primary: var(--neon-bg);
+            --bg-secondary: var(--neon-bg-2);
+            --bg-card: #14142a;
+            --text-primary: #e0e0ff;
+            --text-secondary: #8888bb;
+            --text-dim: #4a4a6a;
+            --border: var(--neon-purple-dim);
+            --border-strong: var(--neon-purple);
+            --accent: var(--neon-cyan);
+            --accent-strong: #00cccc;
+            --accent-contrast: #0a0a1a;
+            --danger: var(--neon-danger);
+            --success: #00ff88;
+            --warning: #ffaa00;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--neon-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(0, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(167, 139, 250, 0.04) 0%, transparent 60%);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.18) 2px,
+                rgba(0, 0, 0, 0.18) 3px
+            );
+            opacity: 0.4;
+        }
+
+        #top-bar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 50;
+            pointer-events: none;
+        }
+        #top-bar > * { pointer-events: auto; }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border: 1px solid var(--neon-purple-dim);
+            background: rgba(20, 20, 42, 0.7);
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+        .nav-back:hover {
+            background: var(--neon-cyan);
+            color: var(--neon-bg);
+            box-shadow: 0 0 16px rgba(0, 255, 255, 0.5);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--neon-purple-dim);
+            background: rgba(20, 20, 42, 0.7);
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+        .icon-btn:hover {
+            background: var(--neon-cyan);
+            color: var(--neon-bg);
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+        }
+
+        #app {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+            z-index: 2;
+        }
+
+        .game-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--neon-purple-dim);
+            padding: 16px;
+            box-shadow:
+                0 0 30px rgba(167, 139, 250, 0.15),
+                inset 0 0 20px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .game-panel::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            pointer-events: none;
+            background: linear-gradient(135deg,
+                rgba(0, 255, 255, 0.2) 0%,
+                transparent 30%,
+                transparent 70%,
+                rgba(255, 0, 255, 0.2) 100%);
+            mix-blend-mode: screen;
+            opacity: 0.5;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--neon-purple-dim);
+            background: rgba(10, 10, 26, 0.7);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hud-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .hud-value {
+            color: var(--neon-cyan);
+            font-weight: 700;
+            font-size: 20px;
+            text-shadow:
+                0 0 4px rgba(0, 255, 255, 0.8),
+                0 0 12px rgba(0, 255, 255, 0.4);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hud-value.pink {
+            color: var(--neon-pink);
+            text-shadow:
+                0 0 4px rgba(255, 0, 255, 0.8),
+                0 0 12px rgba(255, 0, 255, 0.4);
+        }
+
+        .hud-value.purple {
+            color: var(--neon-purple);
+            text-shadow:
+                0 0 4px rgba(167, 139, 250, 0.8),
+                0 0 12px rgba(167, 139, 250, 0.4);
+        }
+
+        #canvas-wrap {
+            position: relative;
+            line-height: 0;
+        }
+
+        canvas {
+            display: block;
+            background: var(--neon-bg);
+            border: 1px solid var(--neon-purple-dim);
+            box-shadow:
+                0 0 30px rgba(0, 255, 255, 0.12),
+                inset 0 0 60px rgba(167, 139, 250, 0.05);
+        }
+
+        .death-flash {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 42, 42, 0.6);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.08s ease-out;
+        }
+        .death-flash.flash {
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #config-panel {
+            width: 280px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--neon-purple-dim);
+            box-shadow:
+                0 0 24px rgba(167, 139, 250, 0.12),
+                inset 0 0 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            color: var(--neon-cyan);
+            text-shadow:
+                0 0 8px rgba(0, 255, 255, 0.6),
+                0 0 18px rgba(0, 255, 255, 0.3);
+            letter-spacing: 6px;
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--neon-purple-dim);
+        }
+
+        .panel-title small {
+            display: block;
+            font-size: 11px;
+            letter-spacing: 4px;
+            color: var(--neon-pink);
+            text-shadow: 0 0 6px rgba(255, 0, 255, 0.6);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .config-label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .config-label::before {
+            content: '◆ ';
+            color: var(--neon-cyan);
+        }
+
+        .config-hint {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .oma-diff-group {
+            border: 1px solid var(--neon-purple-dim);
+        }
+
+        .oma-diff-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1px;
+            background: rgba(10, 10, 26, 0.7);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .oma-diff-btn:hover {
+            color: var(--neon-cyan);
+        }
+        .oma-diff-btn.active {
+            background: var(--neon-cyan);
+            color: var(--neon-bg);
+            text-shadow: none;
+            box-shadow:
+                inset 0 0 8px rgba(0, 0, 0, 0.3),
+                0 0 12px rgba(0, 255, 255, 0.6);
+        }
+
+        .board-size-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .board-size-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: 1px solid var(--neon-purple-dim);
+            background: rgba(10, 10, 26, 0.7);
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .board-size-btn:hover {
+            color: var(--neon-cyan);
+            border-color: var(--neon-purple);
+        }
+        .board-size-btn.active {
+            background: var(--neon-pink);
+            color: var(--neon-bg);
+            border-color: var(--neon-pink);
+            box-shadow:
+                inset 0 0 8px rgba(0, 0, 0, 0.3),
+                0 0 12px rgba(255, 0, 255, 0.6);
+        }
+
+        #btn-start, #btn-pause {
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            text-shadow: 0 0 6px rgba(0, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        #btn-start:hover:not(:disabled), #btn-pause:hover:not(:disabled) {
+            background: var(--neon-cyan);
+            color: var(--neon-bg);
+            text-shadow: none;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        #btn-start:disabled, #btn-pause:disabled {
+            color: var(--text-dim);
+            border-color: var(--text-dim);
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+
+        #btn-pause {
+            color: var(--neon-purple);
+            border-color: var(--neon-purple);
+            text-shadow: 0 0 6px rgba(167, 139, 250, 0.6);
+        }
+
+        #btn-pause:hover:not(:disabled) {
+            background: var(--neon-purple);
+            color: var(--neon-bg);
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            padding: 12px;
+            background: rgba(10, 10, 26, 0.7);
+            border: 1px solid var(--neon-purple-dim);
+            font-size: 12px;
+        }
+        .stat-grid .lbl {
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .stat-grid .val {
+            color: var(--neon-cyan);
+            text-align: right;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 4px rgba(0, 255, 255, 0.5);
+        }
+
+        #controls-help {
+            font-size: 12px;
+            line-height: 2;
+            color: var(--text-secondary);
+            padding: 12px;
+            border-top: 1px dashed var(--neon-purple-dim);
+            text-align: center;
+        }
+
+        .oma-key {
+            background: rgba(10, 10, 26, 0.7);
+            border-color: var(--neon-purple-dim);
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            box-shadow: 0 0 4px rgba(0, 255, 255, 0.2);
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; }
+            #config-panel { width: 100%; max-width: 600px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-bar">
+        <a href="index.html" class="nav-back">◄ oma-games</a>
+        <div class="header-controls">
+            <button class="icon-btn" id="lang-btn" title="切换语言">中/EN</button>
+            <button class="icon-btn" id="theme-btn" title="切换主题">◐</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="game-panel">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="score">分数</span>
+                    <span class="hud-value" id="score">0</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="length">长度</span>
+                    <span class="hud-value purple" id="length">3</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="high_score">最高分</span>
+                    <span class="hud-value pink" id="high-score">0</span>
+                </div>
+            </div>
+            <div id="canvas-wrap">
+                <canvas id="canvas" width="600" height="600"></canvas>
+                <div class="death-flash" id="death-flash"></div>
+            </div>
+        </div>
+
+        <div id="config-panel">
+            <div class="panel-title">
+                <span data-i18n="title">SNAKE</span>
+                <small data-i18n="subtitle">霓虹吞食者</small>
+            </div>
+
+            <div class="config-group">
+                <span class="config-label" data-i18n="difficulty">难度</span>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner" data-i18n="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate" data-i18n="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced" data-i18n="advanced">高级</button>
+                </div>
+                <div class="config-hint" data-i18n="diff_hint">蛇速越快越紧张</div>
+            </div>
+
+            <div class="config-group">
+                <span class="config-label" data-i18n="board_size">棋盘</span>
+                <div class="board-size-group" id="board-size-group">
+                    <button class="board-size-btn" data-size="20">20×20</button>
+                    <button class="board-size-btn active" data-size="25">25×25</button>
+                    <button class="board-size-btn" data-size="30">30×30</button>
+                </div>
+                <div class="config-hint" data-i18n="board_hint">网格越多越宽松</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="start_btn">▶ 开始</span></button>
+            <button id="btn-pause" disabled><span data-i18n="pause_btn">⏸ 暂停 (P)</span></button>
+
+            <div class="stat-grid">
+                <span class="lbl" data-i18n="speed">蛇速</span>
+                <span class="val" id="stat-speed">—</span>
+                <span class="lbl" data-i18n="grid">网格</span>
+                <span class="val" id="stat-grid">25×25</span>
+                <span class="lbl" data-i18n="status">状态</span>
+                <span class="val" id="stat-status" data-i18n="status_menu">菜单</span>
+            </div>
+
+            <div id="controls-help">
+                <span class="oma-key">↑</span><span class="oma-key">↓</span><span class="oma-key">←</span><span class="oma-key">→</span>
+                / <span class="oma-key">W</span><span class="oma-key">A</span><span class="oma-key">S</span><span class="oma-key">D</span>
+                <span data-i18n="move">移动</span><br>
+                <span class="oma-key">P</span> / <span class="oma-key">ESC</span> <span data-i18n="pause">暂停</span>
+                &nbsp;<span class="oma-key">R</span> <span data-i18n="restart">重玩</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+        const { i18n, theme, input, loop, randInt } = OmaGames;
+
+        // ===== i18n =====
+        i18n.load({
+            zh: {
+                title: 'SNAKE',
+                subtitle: '霓虹吞食者',
+                score: '分数',
+                length: '长度',
+                high_score: '最高分',
+                difficulty: '难度',
+                diff_hint: '蛇速越快越紧张',
+                board_size: '棋盘',
+                board_hint: '网格越多越宽松',
+                start_btn: '▶ 开始',
+                pause_btn: '⏸ 暂停 (P)',
+                resume_btn: '▶ 继续 (P)',
+                beginner: '初级',
+                intermediate: '中级',
+                advanced: '高级',
+                speed: '蛇速',
+                grid: '网格',
+                status: '状态',
+                status_menu: '菜单',
+                status_playing: '进行中',
+                status_paused: '已暂停',
+                status_over: '已结束',
+                move: '移动',
+                pause: '暂停',
+                restart: '重玩',
+                press_start: '按 [ ENTER ] 或点击 [ ▶ 开始 ]',
+                game_over: 'GAME OVER',
+                press_retry: '按 [ R ] 重玩',
+                paused: '— 已暂停 —',
+                press_resume: '按 [ P ] 继续'
+            },
+            en: {
+                title: 'SNAKE',
+                subtitle: 'Neon Devourer',
+                score: 'Score',
+                length: 'Length',
+                high_score: 'High',
+                difficulty: 'Difficulty',
+                diff_hint: 'Faster snake, more pressure',
+                board_size: 'Board',
+                board_hint: 'Bigger grid, more space',
+                start_btn: '▶ START',
+                pause_btn: '⏸ PAUSE (P)',
+                resume_btn: '▶ RESUME (P)',
+                beginner: 'Easy',
+                intermediate: 'Mid',
+                advanced: 'Hard',
+                speed: 'Speed',
+                grid: 'Grid',
+                status: 'Status',
+                status_menu: 'Menu',
+                status_playing: 'Playing',
+                status_paused: 'Paused',
+                status_over: 'Over',
+                move: 'Move',
+                pause: 'Pause',
+                restart: 'Retry',
+                press_start: 'PRESS [ ENTER ] OR CLICK [ ▶ START ]',
+                game_over: 'GAME OVER',
+                press_retry: 'PRESS [ R ] TO RETRY',
+                paused: '— PAUSED —',
+                press_resume: 'PRESS [ P ] TO RESUME'
+            }
+        });
+        theme.init();
+        input.init({ preventKeys: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '] });
+
+        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
+        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
+
+        // ===== DOM refs =====
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const scoreEl = document.getElementById('score');
+        const lengthEl = document.getElementById('length');
+        const highScoreEl = document.getElementById('high-score');
+        const statSpeedEl = document.getElementById('stat-speed');
+        const statGridEl = document.getElementById('stat-grid');
+        const statStatusEl = document.getElementById('stat-status');
+        const btnStart = document.getElementById('btn-start');
+        const btnPause = document.getElementById('btn-pause');
+        const deathFlash = document.getElementById('death-flash');
+
+        // ===== Difficulty / board config =====
+        // tick interval (ms) per difficulty
+        const DIFF_TICK = {
+            beginner:     150,
+            intermediate: 100,
+            advanced:     60
+        };
+
+        let config = {
+            difficulty: 'beginner',
+            boardSize: 25  // grid cells per side
+        };
+
+        let highScore = 0;
+
+        // ===== Difficulty buttons =====
+        document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.difficulty = btn.dataset.level;
+                updateStatBar();
+                // live-adjust speed if playing
+                if (game.state === 'PLAYING' || game.state === 'PAUSED') {
+                    game.applyDifficulty();
+                }
+            });
+        });
+
+        // ===== Board size buttons =====
+        document.querySelectorAll('#board-size-group .board-size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (game.state === 'PLAYING' || game.state === 'PAUSED') return;
+                document.querySelectorAll('#board-size-group .board-size-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.boardSize = parseInt(btn.dataset.size, 10);
+                updateStatBar();
+            });
+        });
+
+        btnStart.addEventListener('click', () => {
+            if (game.state === 'PAUSED') {
+                game.togglePause();
+            } else {
+                game.start();
+            }
+        });
+        btnPause.addEventListener('click', () => game.togglePause());
+
+        function updateStatBar() {
+            statSpeedEl.textContent = DIFF_TICK[config.difficulty] + 'ms';
+            statGridEl.textContent = config.boardSize + '×' + config.boardSize;
+            const statusKey = {
+                MENU: 'status_menu',
+                PLAYING: 'status_playing',
+                PAUSED: 'status_paused',
+                GAMEOVER: 'status_over'
+            }[game.state];
+            statStatusEl.textContent = i18n.t(statusKey);
+        }
+
+        function updateStartPauseButtons() {
+            const startLabel = game.state === 'PAUSED' ? 'resume_btn' : 'start_btn';
+            btnStart.querySelector('span').textContent = i18n.t(startLabel);
+            btnStart.disabled = game.state === 'PLAYING';
+            btnPause.disabled = !(game.state === 'PLAYING' || game.state === 'PAUSED');
+            const pauseLabel = game.state === 'PAUSED' ? 'resume_btn' : 'pause_btn';
+            btnPause.querySelector('span').textContent = i18n.t(pauseLabel);
+        }
+
+        // re-apply dynamic i18n (status + button labels) when language toggles
+        const _origApply = i18n.apply.bind(i18n);
+        i18n.apply = function() {
+            _origApply();
+            updateStatBar();
+            updateStartPauseButtons();
+        };
+
+        // ===== Game =====
+        // Snake = array of {x, y} in grid coords, head at index 0
+        // Direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'
+        // dir = committed direction for the current tick
+        // nextDir = buffered direction from key press (applied next tick)
+
+        const DIR_VECTORS = {
+            UP:    { x: 0,  y: -1 },
+            DOWN:  { x: 0,  y: 1  },
+            LEFT:  { x: -1, y: 0  },
+            RIGHT: { x: 1,  y: 0  }
+        };
+
+        const OPPOSITE = {
+            UP: 'DOWN',
+            DOWN: 'UP',
+            LEFT: 'RIGHT',
+            RIGHT: 'LEFT'
+        };
+
+        const game = {
+            state: 'MENU', // MENU | PLAYING | PAUSED | GAMEOVER
+            snake: [],
+            dir: 'RIGHT',
+            nextDir: 'RIGHT',
+            food: { x: 0, y: 0 },
+            score: 0,
+            cols: 25,
+            rows: 25,
+            cellSize: 24,
+            tickInterval: 150,
+            tickAccumulator: 0, // not used because loop has fixedStep, but kept for safety
+            pulsePhase: 0,
+            deathFlashUntil: 0,
+            gameOverPending: 0, // timestamp when game-over should finalize (after flash)
+
+            start() {
+                this.cols = config.boardSize;
+                this.rows = config.boardSize;
+                this.cellSize = Math.floor(W / this.cols);
+                this.applyDifficulty();
+
+                // start in center, length 3, heading RIGHT
+                const cx = Math.floor(this.cols / 2);
+                const cy = Math.floor(this.rows / 2);
+                this.snake = [
+                    { x: cx,     y: cy },
+                    { x: cx - 1, y: cy },
+                    { x: cx - 2, y: cy }
+                ];
+                this.dir = 'RIGHT';
+                this.nextDir = 'RIGHT';
+                this.score = 0;
+                this.placeFood();
+                this.state = 'PLAYING';
+                this.deathFlashUntil = 0;
+                this.gameOverPending = 0;
+                deathFlash.classList.remove('flash');
+                this.updateHud();
+                updateStatBar();
+                updateStartPauseButtons();
+            },
+
+            applyDifficulty() {
+                this.tickInterval = DIFF_TICK[config.difficulty];
+                // restart loop with new fixedStep
+                startLoop(this.tickInterval);
+            },
+
+            placeFood() {
+                // rejection sampling: avoid snake body
+                let pos;
+                let attempts = 0;
+                do {
+                    pos = {
+                        x: randInt(0, this.cols - 1),
+                        y: randInt(0, this.rows - 1)
+                    };
+                    attempts++;
+                    // safety: if grid is mostly full, give up after many tries
+                    if (attempts > 1000) break;
+                } while (this.snake.some(s => s.x === pos.x && s.y === pos.y));
+                this.food = pos;
+            },
+
+            setDir(newDir) {
+                // reject direct reversal against the COMMITTED current direction
+                if (newDir === OPPOSITE[this.dir]) return;
+                this.nextDir = newDir;
+            },
+
+            tick() {
+                if (this.state !== 'PLAYING') {
+                    // finalize game-over after the flash animation
+                    if (this.gameOverPending && performance.now() >= this.gameOverPending) {
+                        this.gameOverPending = 0;
+                        this.state = 'GAMEOVER';
+                        updateStatBar();
+                        updateStartPauseButtons();
+                    }
+                    return;
+                }
+
+                // commit buffered direction
+                this.dir = this.nextDir;
+                const v = DIR_VECTORS[this.dir];
+
+                const head = this.snake[0];
+                const newHead = { x: head.x + v.x, y: head.y + v.y };
+
+                // wall collision
+                if (newHead.x < 0 || newHead.x >= this.cols ||
+                    newHead.y < 0 || newHead.y >= this.rows) {
+                    this.die();
+                    return;
+                }
+
+                // self collision
+                // (note: tail will move unless we eat food this tick.
+                //  Standard snake rules: if new head lands on the current tail cell
+                //  AND we are NOT eating food this tick, that's allowed because tail moves away.
+                //  Simplest: check all body segments except the last one when not eating.)
+                const willEat = (newHead.x === this.food.x && newHead.y === this.food.y);
+                const bodyToCheck = willEat ? this.snake : this.snake.slice(0, -1);
+                if (bodyToCheck.some(s => s.x === newHead.x && s.y === newHead.y)) {
+                    this.die();
+                    return;
+                }
+
+                // move
+                this.snake.unshift(newHead);
+                if (willEat) {
+                    this.score += 10;
+                    this.placeFood();
+                } else {
+                    this.snake.pop();
+                }
+                this.updateHud();
+            },
+
+            die() {
+                // trigger red flash, then transition to GAMEOVER shortly after
+                deathFlash.classList.add('flash');
+                this.deathFlashUntil = performance.now() + 500;
+                this.gameOverPending = performance.now() + 200;
+                this.state = 'DYING'; // transient state: still renders playfield, ticks do nothing
+                if (this.score > highScore) {
+                    highScore = this.score;
+                    highScoreEl.textContent = highScore;
+                }
+                setTimeout(() => deathFlash.classList.remove('flash'), 500);
+            },
+
+            togglePause() {
+                if (this.state === 'PLAYING') {
+                    this.state = 'PAUSED';
+                } else if (this.state === 'PAUSED') {
+                    this.state = 'PLAYING';
+                } else {
+                    return;
+                }
+                updateStatBar();
+                updateStartPauseButtons();
+            },
+
+            handleInput() {
+                if (this.state === 'MENU') {
+                    if (input.pressed('Enter')) this.start();
+                    return;
+                }
+                if (this.state === 'GAMEOVER') {
+                    if (input.pressed('r', 'R', 'Enter')) this.start();
+                    return;
+                }
+                if (this.state === 'DYING') return;
+
+                if (input.pressed('p', 'P', 'Escape')) {
+                    this.togglePause();
+                    // edge-trigger: clear by polling small delay. input is held-state, so we
+                    // need a debounce. Use a simple approach: reset on keyup by checking next tick.
+                    // To prevent rapid toggling while held, we use a per-toggle cooldown.
+                    this._lastPauseTs = performance.now();
+                    return;
+                }
+                // pause toggle debounce: ignore pause keys for 250ms after a toggle
+                if (this._lastPauseTs && performance.now() - this._lastPauseTs < 250) {
+                    // still within cooldown, but allow direction inputs
+                }
+
+                if (this.state !== 'PLAYING') return;
+
+                if (input.pressed('ArrowUp', 'w', 'W'))    this.setDir('UP');
+                else if (input.pressed('ArrowDown', 's', 'S'))  this.setDir('DOWN');
+                else if (input.pressed('ArrowLeft', 'a', 'A'))  this.setDir('LEFT');
+                else if (input.pressed('ArrowRight', 'd', 'D')) this.setDir('RIGHT');
+
+                if (input.pressed('r', 'R')) this.start();
+            },
+
+            updateHud() {
+                scoreEl.textContent = this.score;
+                lengthEl.textContent = this.snake.length;
+                if (this.score > highScore) {
+                    highScore = this.score;
+                    highScoreEl.textContent = highScore;
+                }
+            },
+
+            draw() {
+                this.pulsePhase += 0.06;
+
+                // background
+                ctx.fillStyle = '#0a0a1a';
+                ctx.fillRect(0, 0, W, H);
+
+                this.drawGrid();
+
+                if (this.state === 'MENU') {
+                    this.drawMenu();
+                    return;
+                }
+
+                if (this.state === 'GAMEOVER') {
+                    this.drawSnake();
+                    this.drawFood();
+                    this.drawGameOver();
+                    return;
+                }
+
+                // PLAYING | PAUSED | DYING
+                this.drawSnake();
+                this.drawFood();
+
+                if (this.state === 'PAUSED') {
+                    this.drawPauseOverlay();
+                }
+            },
+
+            drawGrid() {
+                const cs = this.cellSize;
+                ctx.strokeStyle = '#1a1a3a';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 0; i <= this.cols; i++) {
+                    const x = i * cs;
+                    ctx.moveTo(x + 0.5, 0);
+                    ctx.lineTo(x + 0.5, this.rows * cs);
+                }
+                for (let j = 0; j <= this.rows; j++) {
+                    const y = j * cs;
+                    ctx.moveTo(0, y + 0.5);
+                    ctx.lineTo(this.cols * cs, y + 0.5);
+                }
+                ctx.stroke();
+
+                // subtle border glow
+                ctx.strokeStyle = 'rgba(167, 139, 250, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.shadowColor = 'rgba(167, 139, 250, 0.6)';
+                ctx.shadowBlur = 8;
+                ctx.strokeRect(0.5, 0.5, this.cols * cs - 1, this.rows * cs - 1);
+                ctx.shadowBlur = 0;
+            },
+
+            drawSnake() {
+                const cs = this.cellSize;
+                const len = this.snake.length;
+                // draw from tail to head so head is on top
+                for (let i = len - 1; i >= 0; i--) {
+                    const seg = this.snake[i];
+                    const t = len > 1 ? i / (len - 1) : 0; // 0 at head, 1 at tail
+                    // color gradient: head cyan (#00ffff) -> tail purple (#a78bfa)
+                    const r = Math.round(0   + (167 - 0)   * t);
+                    const g = Math.round(255 + (139 - 255) * t);
+                    const b = Math.round(255 + (250 - 255) * t);
+                    const color = `rgb(${r}, ${g}, ${b})`;
+
+                    const isHead = (i === 0);
+                    const padding = isHead ? 1 : 2;
+                    const size = cs - padding * 2;
+                    const x = seg.x * cs + padding;
+                    const y = seg.y * cs + padding;
+
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = isHead ? 18 : 8;
+                    ctx.fillStyle = color;
+                    this.roundRect(ctx, x, y, size, size, isHead ? 5 : 4);
+                    ctx.fill();
+
+                    if (isHead) {
+                        // eyes — orient based on direction
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#0a0a1a';
+                        const eyeR = Math.max(1.5, cs * 0.09);
+                        const cx = x + size / 2;
+                        const cy = y + size / 2;
+                        const off = size * 0.22;
+                        let e1, e2;
+                        if (this.dir === 'RIGHT') {
+                            e1 = { x: cx + off * 0.5, y: cy - off };
+                            e2 = { x: cx + off * 0.5, y: cy + off };
+                        } else if (this.dir === 'LEFT') {
+                            e1 = { x: cx - off * 0.5, y: cy - off };
+                            e2 = { x: cx - off * 0.5, y: cy + off };
+                        } else if (this.dir === 'UP') {
+                            e1 = { x: cx - off, y: cy - off * 0.5 };
+                            e2 = { x: cx + off, y: cy - off * 0.5 };
+                        } else { // DOWN
+                            e1 = { x: cx - off, y: cy + off * 0.5 };
+                            e2 = { x: cx + off, y: cy + off * 0.5 };
+                        }
+                        ctx.beginPath();
+                        ctx.arc(e1.x, e1.y, eyeR, 0, Math.PI * 2);
+                        ctx.arc(e2.x, e2.y, eyeR, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                ctx.shadowBlur = 0;
+            },
+
+            drawFood() {
+                const cs = this.cellSize;
+                const pulse = Math.sin(this.pulsePhase) * 0.5 + 0.5; // 0..1
+                const cx = this.food.x * cs + cs / 2;
+                const cy = this.food.y * cs + cs / 2;
+                const baseR = cs * 0.32;
+                const r = baseR + pulse * (cs * 0.06);
+
+                // outer glow ring
+                ctx.shadowColor = '#ff00ff';
+                ctx.shadowBlur = 20 + pulse * 10;
+                ctx.fillStyle = '#ff00ff';
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fill();
+
+                // inner brighter core
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#ffaaff';
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // tiny sparkle
+                ctx.fillStyle = '#ffffff';
+                ctx.globalAlpha = 0.6 + pulse * 0.4;
+                ctx.beginPath();
+                ctx.arc(cx - r * 0.3, cy - r * 0.3, r * 0.18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            },
+
+            roundRect(ctx, x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.arcTo(x + w, y,     x + w, y + h, r);
+                ctx.arcTo(x + w, y + h, x,     y + h, r);
+                ctx.arcTo(x,     y + h, x,     y,     r);
+                ctx.arcTo(x,     y,     x + w, y,     r);
+                ctx.closePath();
+            },
+
+            drawMenu() {
+                // title
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#00ffff';
+                ctx.font = '900 64px Orbitron, sans-serif';
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 24;
+                ctx.fillText('SNAKE', W / 2, H / 2 - 40);
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#ff00ff';
+                ctx.font = '400 16px Orbitron, sans-serif';
+                ctx.shadowColor = '#ff00ff';
+                ctx.shadowBlur = 8;
+                ctx.fillText('// ' + i18n.t('subtitle').toUpperCase(), W / 2, H / 2 - 10);
+                ctx.shadowBlur = 0;
+
+                // blinking prompt
+                if (Math.floor(Date.now() / 500) % 2 === 0) {
+                    ctx.fillStyle = '#a78bfa';
+                    ctx.font = '600 16px Rajdhani, sans-serif';
+                    ctx.shadowColor = '#a78bfa';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(i18n.t('press_start'), W / 2, H / 2 + 40);
+                    ctx.shadowBlur = 0;
+                }
+
+                // demo snake silhouette in menu (decorative)
+                const cs = this.cellSize;
+                const baseY = Math.floor(this.rows * 0.75);
+                const demoSnake = [
+                    { x: 4, y: baseY }, { x: 5, y: baseY }, { x: 6, y: baseY },
+                    { x: 7, y: baseY }, { x: 8, y: baseY - 1 }, { x: 9, y: baseY - 2 },
+                    { x: 10, y: baseY - 2 }
+                ];
+                demoSnake.forEach((seg, i) => {
+                    const t = i / (demoSnake.length - 1);
+                    const r = Math.round(0 + 167 * t);
+                    const g = Math.round(255 + (139 - 255) * t);
+                    const b = Math.round(255 + (250 - 255) * t);
+                    ctx.fillStyle = `rgb(${r},${g},${b})`;
+                    ctx.globalAlpha = 0.4;
+                    ctx.shadowColor = `rgb(${r},${g},${b})`;
+                    ctx.shadowBlur = 6;
+                    ctx.fillRect(seg.x * cs + 2, seg.y * cs + 2, cs - 4, cs - 4);
+                });
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+
+                ctx.textAlign = 'start';
+            },
+
+            drawGameOver() {
+                // dim
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.fillRect(0, 0, W, H);
+
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ff2a2a';
+                ctx.font = '900 56px Orbitron, sans-serif';
+                ctx.shadowColor = '#ff2a2a';
+                ctx.shadowBlur = 24;
+                ctx.fillText(i18n.t('game_over'), W / 2, H / 2 - 10);
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = '#ff66aa';
+                ctx.font = '700 22px Orbitron, sans-serif';
+                ctx.shadowColor = '#ff66aa';
+                ctx.shadowBlur = 8;
+                ctx.fillText(this.score + ' PT', W / 2, H / 2 + 30);
+                ctx.shadowBlur = 0;
+
+                if (Math.floor(Date.now() / 500) % 2 === 0) {
+                    ctx.fillStyle = '#a78bfa';
+                    ctx.font = '600 14px Rajdhani, sans-serif';
+                    ctx.shadowColor = '#a78bfa';
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(i18n.t('press_retry'), W / 2, H / 2 + 70);
+                    ctx.shadowBlur = 0;
+                }
+                ctx.textAlign = 'start';
+            },
+
+            drawPauseOverlay() {
+                ctx.fillStyle = 'rgba(10, 10, 26, 0.7)';
+                ctx.fillRect(0, 0, W, H);
+
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#a78bfa';
+                ctx.font = '900 48px Orbitron, sans-serif';
+                ctx.shadowColor = '#a78bfa';
+                ctx.shadowBlur = 20;
+                ctx.fillText(i18n.t('paused'), W / 2, H / 2);
+                ctx.shadowBlur = 0;
+
+                if (Math.floor(Date.now() / 500) % 2 === 0) {
+                    ctx.fillStyle = '#00ffff';
+                    ctx.font = '600 14px Rajdhani, sans-serif';
+                    ctx.shadowColor = '#00ffff';
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(i18n.t('press_resume'), W / 2, H / 2 + 40);
+                    ctx.shadowBlur = 0;
+                }
+                ctx.textAlign = 'start';
+            }
+        };
+
+        // ===== Game loop with fixed timestep =====
+        // The loop is the OmaGames loop. We re-invoke loop.start() whenever the
+        // tick interval changes (difficulty change). The render runs every frame.
+        let loopRunning = false;
+        function startLoop(fixedStep) {
+            loop.start(
+                () => game.tick(),
+                () => {
+                    game.handleInput();
+                    game.draw();
+                },
+                { fixedStep: fixedStep }
+            );
+            loopRunning = true;
+        }
+
+        // initialize HUD + stat bar
+        game.updateHud();
+        updateStatBar();
+        updateStartPauseButtons();
+
+        // start the loop with default beginner speed (only renders in MENU)
+        startLoop(DIFF_TICK[config.difficulty]);
+    </script>
+</body>
+</html>
