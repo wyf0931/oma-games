@@ -1,616 +1,1218 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OhMyAgent Games</title>
+    <title>OMA GAMES — 街机游戏中心</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared/oma-games.css">
     <style>
         :root {
-            /* Light theme */
-            --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
+            /* Dark theme (default) */
+            --bg-void: #04040c;
+            --bg-deep: #08081a;
+            --bg-card: #0d0d22;
+            --bg-card-hover: #14142e;
+            --neon-cyan: #00f0ff;
+            --neon-magenta: #ff2bd1;
+            --neon-yellow: #ffe600;
+            --neon-green: #00ff9f;
+            --neon-purple: #a78bfa;
+            --grid-line: rgba(0, 240, 255, 0.08);
+            --grid-line-strong: rgba(0, 240, 255, 0.18);
+            --text-primary: #e8e8ff;
+            --text-secondary: #8a8aaa;
+            --text-dim: #4a4a6a;
+            --border: rgba(0, 240, 255, 0.15);
+            --border-strong: rgba(0, 240, 255, 0.4);
+            --shadow-neon-cyan: 0 0 24px rgba(0, 240, 255, 0.4);
+            --shadow-neon-magenta: 0 0 24px rgba(255, 43, 209, 0.4);
+
+            --bg-primary: var(--bg-void);
+            --bg-secondary: var(--bg-deep);
+            --text-primary: var(--text-primary);
+            --text-secondary: var(--text-secondary);
+            --accent: var(--neon-cyan);
+            --accent-strong: var(--neon-magenta);
+            --border-color: var(--border);
+        }
+
+        [data-theme='light'] {
+            --bg-void: #f5f5fa;
+            --bg-deep: #ffffff;
             --bg-card: #ffffff;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --text-tertiary: #9ca3af;
-            --border-color: #e5e7eb;
-            --border-hover: #d1d5db;
-            --accent-primary: #8b5cf6;
-            --accent-secondary: #7c3aed;
-            --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-accent: 0 4px 14px 0 rgba(139, 92, 246, 0.15);
+            --bg-card-hover: #f0f0fa;
+            --neon-cyan: #0066cc;
+            --neon-magenta: #cc0099;
+            --neon-yellow: #cc9900;
+            --neon-green: #008855;
+            --neon-purple: #6644aa;
+            --grid-line: rgba(0, 102, 204, 0.08);
+            --grid-line-strong: rgba(0, 102, 204, 0.18);
+            --text-primary: #1a1a2e;
+            --text-secondary: #555577;
+            --text-dim: #8888aa;
+            --border: rgba(0, 102, 204, 0.2);
+            --border-strong: rgba(0, 102, 204, 0.5);
+
+            --bg-primary: var(--bg-void);
+            --bg-secondary: var(--bg-deep);
         }
 
-        [data-theme="dark"] {
-            /* Dark theme */
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #111111;
-            --bg-card: #141414;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --text-tertiary: #6b7280;
-            --border-color: #1f1f1f;
-            --border-hover: #2a2a2a;
-            --accent-primary: #a78bfa;
-            --accent-secondary: #8b5cf6;
-            --accent-gradient: linear-gradient(135deg, #a78bfa 0%, #818cf8 100%);
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-            --shadow-accent: 0 4px 14px 0 rgba(139, 92, 246, 0.3);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-primary);
+            font-family: 'Rajdhani', 'Inter', sans-serif;
+            background: var(--bg-void);
             color: var(--text-primary);
             min-height: 100vh;
-            line-height: 1.6;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
+        /* === Animated background: perspective grid === */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background:
+                linear-gradient(var(--bg-void) 50%, transparent 50%),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, transparent calc(100% - 1px), var(--grid-line) calc(100% - 1px)),
+                linear-gradient(0deg, var(--grid-line) 1px, transparent 1px),
+                linear-gradient(0deg, transparent calc(100% - 1px), var(--grid-line) calc(100% - 1px));
+            background-size: 100% 100%, 60px 60px, 60px 60px, 60px 60px, 60px 60px;
         }
 
-        /* Header */
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 240, 255, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 43, 209, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 30% at 50% 100%, rgba(167, 139, 250, 0.08) 0%, transparent 60%);
+        }
+
+        /* === Scanlines overlay (subtle CRT) === */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 200;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.10) 2px,
+                rgba(0, 0, 0, 0.10) 3px
+            );
+            opacity: 0.4;
+        }
+
+        [data-theme='light'] body::before {
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 3px
+            );
+        }
+
+        /* === Header === */
         header {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(8, 8, 26, 0.7);
+            border-bottom: 1px solid var(--border);
         }
 
-        .header-content {
+        [data-theme='light'] header {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .header-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 14px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 64px;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 18px;
-            color: var(--text-primary);
-            text-decoration: none;
+            gap: 12px;
+            font-family: 'Audiowide', sans-serif;
+            font-size: 22px;
+            letter-spacing: 3px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
         }
 
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--accent-gradient);
-            border-radius: 8px;
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--neon-cyan);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.3), inset 0 0 12px rgba(0, 240, 255, 0.2);
+            position: relative;
         }
+        .logo-mark::before, .logo-mark::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-color: var(--neon-magenta);
+            border-style: solid;
+        }
+        .logo-mark::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+        .logo-mark::after { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+
+        .nav {
+            display: flex;
+            gap: 28px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+
+        .nav a {
+            color: var(--text-secondary);
+            transition: color 0.2s, text-shadow 0.2s;
+            position: relative;
+        }
+        .nav a:hover {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+        }
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--neon-cyan);
+            transition: width 0.3s;
+        }
+        .nav a:hover::after { width: 100%; }
 
         .header-controls {
             display: flex;
-            align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
-        .icon-button {
+        .icon-btn {
             width: 36px;
             height: 36px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            transition: all 0.2s;
             cursor: pointer;
-            transition: all 0.2s ease;
+        }
+        .icon-btn:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
         }
 
-        .icon-button:hover {
-            border-color: var(--border-hover);
-            color: var(--text-primary);
+        /* === Main === */
+        main {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 32px;
         }
 
-        .icon-button:focus {
-            outline: 2px solid var(--accent-primary);
-            outline-offset: 2px;
-        }
-
-        /* Hero */
+        /* === Hero === */
         .hero {
+            padding: 100px 0 60px;
             text-align: center;
-            padding: 80px 0 60px;
+            position: relative;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-
-        .hero-badge i {
-            width: 14px;
-            height: 14px;
-            color: var(--accent-primary);
-        }
-
-        .hero h1 {
-            font-size: clamp(32px, 5vw, 48px);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 16px;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Games Grid */
-        .games-section {
-            padding: 40px 0 80px;
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-        }
-
-        .game-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .game-card:hover {
-            border-color: var(--accent-primary);
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-accent);
-        }
-
-        .game-thumbnail {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: var(--bg-secondary);
-        }
-
-        /* Carousel */
-        .game-thumbnail-wrapper {
+            gap: 8px;
+            padding: 8px 16px;
+            border: 1px solid var(--border-strong);
+            background: rgba(0, 240, 255, 0.05);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--neon-cyan);
+            margin-bottom: 28px;
             position: relative;
-            width: 100%;
-            height: 200px;
-            overflow: hidden;
-            background: var(--bg-secondary);
         }
-
-        .carousel-slides {
-            display: flex;
-            height: 100%;
-            animation: carousel-scroll 6s ease-in-out infinite;
-        }
-
-        .carousel-slide {
-            min-width: 100%;
-            height: 100%;
-        }
-
-        .carousel-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        @keyframes carousel-scroll {
-            0%, 40% { transform: translateX(0); }
-            50%, 90% { transform: translateX(-100%); }
-            100% { transform: translateX(0); }
-        }
-
-        .carousel-dots {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 6px;
-            z-index: 2;
-            animation: carousel-dot-sync 6s ease-in-out infinite;
-        }
-
-        @keyframes carousel-dot-sync {
-            0%, 40% { --dot-active: 0; }
-            50%, 90% { --dot-active: 1; }
-            100% { --dot-active: 0; }
-        }
-
-        .carousel-dot {
+        .hero-badge::before {
+            content: '';
             width: 8px;
             height: 8px;
+            background: var(--neon-green);
             border-radius: 50%;
-            background: rgba(255,255,255,0.4);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            padding: 0;
+            box-shadow: 0 0 8px var(--neon-green);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
-        .carousel-dot:nth-child(1) { animation: dot1 6s ease-in-out infinite; }
-        .carousel-dot:nth-child(2) { animation: dot2 6s ease-in-out infinite; }
-
-        @keyframes dot1 {
-            0%, 40% { background: white; width: 20px; border-radius: 4px; }
-            50%, 90% { background: rgba(255,255,255,0.4); width: 8px; border-radius: 50%; }
-            100% { background: white; width: 20px; border-radius: 4px; }
-        }
-
-        @keyframes dot2 {
-            0%, 40% { background: rgba(255,255,255,0.4); width: 8px; border-radius: 50%; }
-            50%, 90% { background: white; width: 20px; border-radius: 4px; }
-            100% { background: rgba(255,255,255,0.4); width: 8px; border-radius: 50%; }
-        }
-
-        .game-content {
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .game-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .game-description {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.5;
+        .hero-title {
+            font-family: 'Audiowide', sans-serif;
+            font-size: clamp(60px, 12vw, 160px);
+            line-height: 0.9;
+            letter-spacing: -0.02em;
+            background: linear-gradient(180deg, var(--neon-cyan) 0%, var(--neon-magenta) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 60px rgba(0, 240, 255, 0.4);
             margin-bottom: 16px;
-            flex: 1;
+            position: relative;
         }
 
-        .game-footer {
+        .hero-title::before, .hero-title::after {
+            content: 'OMA GAMES';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.6;
+            mix-blend-mode: screen;
+        }
+        .hero-title::before {
+            background: var(--neon-magenta);
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: glitch-1 4s infinite;
+        }
+        .hero-title::after {
+            background: var(--neon-cyan);
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: glitch-2 4s infinite;
+        }
+
+        @keyframes glitch-1 {
+            0%, 90%, 100% { transform: translate(0); opacity: 0; }
+            92% { transform: translate(-3px, 1px); opacity: 0.7; }
+            94% { transform: translate(2px, -1px); opacity: 0.7; }
+            96% { transform: translate(-1px, 2px); opacity: 0.7; }
+        }
+        @keyframes glitch-2 {
+            0%, 90%, 100% { transform: translate(0); opacity: 0; }
+            92% { transform: translate(3px, -1px); opacity: 0.7; }
+            94% { transform: translate(-2px, 1px); opacity: 0.7; }
+            96% { transform: translate(1px, -2px); opacity: 0.7; }
+        }
+
+        .hero-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 300;
+            font-size: clamp(18px, 2vw, 24px);
+            color: var(--text-secondary);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            color: var(--text-dim);
+            max-width: 580px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 16px;
-            border-top: 1px solid var(--border-color);
+            justify-content: center;
+            gap: 60px;
+            margin-top: 48px;
+            font-family: 'Orbitron', sans-serif;
         }
 
-        .game-tags {
-            display: flex;
-            gap: 8px;
-        }
-
-        .game-tag {
-            font-size: 11px;
-            padding: 4px 8px;
-            background: var(--bg-secondary);
-            border-radius: 4px;
-            color: var(--text-tertiary);
-            font-weight: 500;
-        }
-
-        .play-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: var(--accent-gradient);
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .game-card:hover .play-button {
-            transform: scale(1.05);
-        }
-
-        .play-button i {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--border-color);
-            padding: 40px 0;
+        .hero-stat {
             text-align: center;
         }
 
-        .footer-content {
+        .hero-stat-num {
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 16px rgba(0, 240, 255, 0.5);
+            line-height: 1;
+        }
+        .hero-stat-num.alt { color: var(--neon-magenta); text-shadow: 0 0 16px rgba(255, 43, 209, 0.5); }
+        .hero-stat-num.alt2 { color: var(--neon-yellow); text-shadow: 0 0 16px rgba(255, 230, 0, 0.5); }
+
+        .hero-stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        /* === Section heading === */
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin: 80px 0 28px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 12px var(--neon-cyan);
+        }
+
+        .section-meta {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        /* === Featured Game === */
+        .featured {
+            position: relative;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-deep) 100%);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            min-height: 360px;
+        }
+
+        .featured::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow));
+            box-shadow: 0 0 12px var(--neon-cyan);
+        }
+
+        .featured-img {
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .featured-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .featured:hover .featured-img img {
+            transform: scale(1.04);
+        }
+
+        .featured-img::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, transparent 70%, var(--bg-card) 100%),
+                linear-gradient(0deg, var(--bg-card) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .featured-content {
+            padding: 40px;
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .featured-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border: 1px solid var(--neon-magenta);
+            color: var(--neon-magenta);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            width: fit-content;
+            text-shadow: 0 0 8px rgba(255, 43, 209, 0.6);
+        }
+
+        .featured-title {
+            font-family: 'Audiowide', sans-serif;
+            font-size: clamp(36px, 4vw, 52px);
+            line-height: 1;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+
+        .featured-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .featured-meta {
+            display: flex;
+            gap: 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1.5px;
+            margin-top: 8px;
+        }
+        .featured-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .featured-meta span::before {
+            content: '▸';
+            color: var(--neon-cyan);
+        }
+
+        .play-btn {
+            display: inline-flex;
             align-items: center;
             gap: 12px;
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s;
+            width: fit-content;
+            position: relative;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .play-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--neon-cyan);
+            transform: translateX(-100%);
+            transition: transform 0.25s;
+            z-index: 0;
+        }
+        .play-btn:hover {
+            color: var(--bg-void);
+            box-shadow: 0 0 24px rgba(0, 240, 255, 0.6);
+        }
+        .play-btn:hover::before {
+            transform: translateX(0);
+        }
+        .play-btn span {
+            position: relative;
+            z-index: 1;
+        }
+        .play-btn-arrow {
+            font-size: 18px;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.25s;
+        }
+        .play-btn:hover .play-btn-arrow {
+            transform: translateX(4px);
+        }
+
+        /* === Game Grid === */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--card-accent, var(--neon-cyan));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+            z-index: 5;
+        }
+
+        .game-card:hover {
+            border-color: var(--card-accent, var(--neon-cyan));
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.4),
+                0 0 24px var(--card-glow, rgba(0, 240, 255, 0.2));
+        }
+        .game-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-thumb {
+            position: relative;
+            aspect-ratio: 16 / 10;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s, filter 0.4s;
+            filter: saturate(0.85) brightness(0.85);
+        }
+
+        .game-card:hover .card-thumb img {
+            transform: scale(1.06);
+            filter: saturate(1.1) brightness(1);
+        }
+
+        .card-thumb::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.18) 2px,
+                rgba(0, 0, 0, 0.18) 3px
+            );
+            opacity: 0.6;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .game-card:hover .card-thumb::after {
+            opacity: 0.2;
+        }
+
+        .card-difficulty {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: var(--card-accent, var(--neon-cyan));
+            border: 1px solid var(--card-accent, var(--neon-cyan));
+            z-index: 3;
+        }
+
+        .card-id {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(6px);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            z-index: 3;
+        }
+
+        .card-content {
+            padding: 18px 20px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-arrow {
+            color: var(--card-accent, var(--neon-cyan));
+            opacity: 0;
+            transform: translateX(-6px);
+            transition: all 0.25s;
+            font-size: 16px;
+        }
+        .game-card:hover .card-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .card-tag {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 2px 8px;
+            background: rgba(0, 240, 255, 0.08);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            letter-spacing: 1px;
+        }
+
+        /* per-game accent override */
+        .gc-tank { --card-accent: var(--neon-yellow); --card-glow: rgba(255, 230, 0, 0.25); }
+        .gc-space-invaders { --card-accent: var(--neon-green); --card-glow: rgba(0, 255, 159, 0.25); }
+        .gc-pong { --card-accent: #f5f5f5; --card-glow: rgba(245, 245, 245, 0.2); }
+        .gc-dino { --card-accent: #8a8a8a; --card-glow: rgba(138, 138, 138, 0.25); }
+        .gc-snake { --card-accent: var(--neon-magenta); --card-glow: rgba(255, 43, 209, 0.25); }
+        .gc-minesweeper { --card-accent: var(--neon-purple); --card-glow: rgba(167, 139, 250, 0.25); }
+        .gc-tower-climb { --card-accent: #ff8c1a; --card-glow: rgba(255, 140, 26, 0.25); }
+
+        /* === Roadmap teaser === */
+        .roadmap {
+            margin: 100px 0 60px;
+            padding: 40px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-card) 0%, transparent 100%);
+            position: relative;
+            text-align: center;
+        }
+
+        .roadmap::before {
+            content: 'COMING SOON';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 2px 12px;
+            background: var(--bg-void);
+            color: var(--neon-magenta);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 8px rgba(255, 43, 209, 0.6);
+        }
+
+        .roadmap-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .roadmap-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+            max-width: 600px;
+            margin: 0 auto 24px;
+            line-height: 1.6;
+        }
+
+        .roadmap-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 1px solid var(--neon-magenta);
+            color: var(--neon-magenta);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+        .roadmap-link:hover {
+            background: var(--neon-magenta);
+            color: var(--bg-void);
+            box-shadow: 0 0 20px rgba(255, 43, 209, 0.4);
+        }
+
+        /* === Footer === */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 32px 30px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-copy {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
         }
 
         .footer-links {
             display: flex;
             gap: 24px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 2px;
         }
 
         .footer-links a {
             color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s ease;
+            transition: color 0.2s;
         }
-
         .footer-links a:hover {
-            color: var(--accent-primary);
+            color: var(--neon-cyan);
         }
 
-        .footer-copyright {
-            font-size: 13px;
-            color: var(--text-tertiary);
+        /* === Boot animation === */
+        .boot-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: var(--bg-void);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--neon-cyan);
+            font-size: 14px;
+            letter-spacing: 3px;
+            animation: bootFade 1.6s ease-out forwards;
+            pointer-events: none;
         }
 
-        /* Responsive */
-        @media (max-width: 640px) {
-            .hero {
-                padding: 60px 0 40px;
-            }
+        @keyframes bootFade {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
 
-            .hero h1 {
-                font-size: 32px;
-            }
+        .boot-text {
+            text-shadow: 0 0 16px rgba(0, 240, 255, 0.7);
+            animation: bootBlink 0.5s steps(2) infinite;
+        }
+        @keyframes bootBlink {
+            50% { opacity: 0.5; }
+        }
 
-            .hero p {
-                font-size: 16px;
-            }
-
-            .games-grid {
+        /* === Responsive === */
+        @media (max-width: 900px) {
+            .featured {
                 grid-template-columns: 1fr;
             }
-
-            .header-controls {
-                gap: 8px;
-            }
+            .featured-img { aspect-ratio: 16 / 9; }
+            .hero-stats { gap: 32px; }
+            .hero { padding: 60px 0 40px; }
+            .nav { display: none; }
+            .header-inner { padding: 12px 20px; }
+            main { padding: 0 20px; }
         }
-
-        /* Animation */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .game-card {
-            animation: fadeInUp 0.5s ease forwards;
-        }
-
-        .game-card:nth-child(1) { animation-delay: 0.1s; }
-        .game-card:nth-child(2) { animation-delay: 0.2s; }
-        .game-card:nth-child(3) { animation-delay: 0.3s; }
-        .game-card:nth-child(4) { animation-delay: 0.4s; }
     </style>
 </head>
 <body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <div class="boot-overlay">
+        <div class="boot-text">SYSTEM READY ▸</div>
+    </div>
+
     <header>
-        <div class="container">
-            <div class="header-content">
-                <a href="https://games.ohmyagent.ai" class="logo">
-                    <div class="logo-icon">
-                        <i data-lucide="gamepad-2"></i>
-                    </div>
-                    <span data-i18n="site_title">OhMyAgent Games</span>
-                </a>
-                <div class="header-controls">
-                    <button class="icon-button" id="lang-toggle" aria-label="Toggle Language">
-                        <i data-lucide="languages"></i>
-                    </button>
-                    <button class="icon-button" id="theme-toggle" aria-label="Toggle Theme">
-                        <i data-lucide="sun"></i>
-                    </button>
-                </div>
+        <div class="header-inner">
+            <a href="#" class="logo">
+                <div class="logo-mark">O</div>
+                <span>OMA·GAMES</span>
+            </a>
+            <nav class="nav">
+                <a href="#arcade" data-i18n="nav_arcade">街机</a>
+                <a href="#featured" data-i18n="nav_featured">推荐</a>
+                <a href="#roadmap" data-i18n="nav_roadmap">路线图</a>
+                <a href="https://github.com/wyf0931/oma-games" target="_blank" rel="noopener">GitHub</a>
+            </nav>
+            <div class="header-controls">
+                <button class="icon-btn" id="lang-btn" title="Language">中/EN</button>
+                <button class="icon-btn" id="theme-btn" title="Theme">◐</button>
             </div>
         </div>
     </header>
 
-    <main class="container">
+    <main>
         <section class="hero">
-            <h1 data-i18n="hero_title">Game Demo Hub</h1>
-            <p data-i18n="hero_description">Lightweight HTML5 games powered by AI-driven development</p>
+            <div class="hero-badge" data-i18n="hero_badge">CLOUDFLARE EDGE · ZERO BACKEND</div>
+            <h1 class="hero-title" data-i18n="hero_title">OMA GAMES</h1>
+            <div class="hero-subtitle" data-i18n="hero_subtitle">// ARCADE GAME HUB //</div>
+            <p class="hero-desc" data-i18n="hero_desc">纯前端实现的轻量游戏合集，每一款都致敬经典玩法。无后端、无追踪、无负担 — 双击即玩。</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-num" id="stat-games">7</div>
+                    <div class="hero-stat-label" data-i18n="stat_games">GAMES</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num alt">5</div>
+                    <div class="hero-stat-label" data-i18n="stat_roadmap">ROADMAP</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num alt2">60</div>
+                    <div class="hero-stat-label" data-i18n="stat_fps">FPS</div>
+                </div>
+            </div>
         </section>
 
-        <section class="games-section">
-            <div class="games-grid">
-                <!-- Game Card: TANK COMMAND -->
-                <a class="game-card" href="tank.html">
-                    <div class="game-thumbnail-wrapper" data-carousel>
-                        <div class="carousel-slides">
-                            <div class="carousel-slide"><img src="tank-start.jpg" alt="TANK COMMAND - 主界面"></div>
-                            <div class="carousel-slide"><img src="tank-play.jpg" alt="TANK COMMAND - 游戏中"></div>
-                        </div>
-                        <div class="carousel-dots">
-                            <button class="carousel-dot" data-dot="0"></button>
-                            <button class="carousel-dot" data-dot="1"></button>
-                        </div>
+        <section id="featured">
+            <div class="section-head">
+                <h2 class="section-title" data-i18n="featured">FEATURED</h2>
+                <div class="section-meta">// HAND-PICKED</div>
+            </div>
+            <a href="tank.html" class="featured gc-tank">
+                <div class="featured-img">
+                    <img src="screenshots/tank.jpeg" alt="TANK COMMAND">
+                </div>
+                <div class="featured-content">
+                    <div class="featured-tag" data-i18n="featured_tag">★ FLAGSHIP TITLE</div>
+                    <h3 class="featured-title">TANK COMMAND</h3>
+                    <p class="featured-desc" data-i18n="tank_desc">军事 HUD 风格的经典坦克大战，行为树驱动的敌方 AI，可自定义敌机数量、威胁等级和武器系统。</p>
+                    <div class="featured-meta">
+                        <span data-i18n="tag_behavior_tree">BEHAVIOR TREE</span>
+                        <span data-i18n="tag_aabb">AABB COLLISION</span>
+                        <span data-i18n="tag_fsm">FSM</span>
                     </div>
-                    <div class="game-content">
-                        <h3 class="game-title" data-i18n="tank_title">TANK COMMAND</h3>
-                        <p class="game-description" data-i18n="tank_description">
-                            Classic tank battle game with military HUD style. Customize enemy count, difficulty, and bullet patterns.
-                        </p>
-                        <div class="game-footer">
-                            <div class="play-button">
-                                <span data-i18n="play_button">Play</span>
-                                <i data-lucide="play"></i>
-                            </div>
+                    <button class="play-btn">
+                        <span data-i18n="play">PLAY</span>
+                        <span class="play-btn-arrow">▶</span>
+                    </button>
+                </div>
+            </a>
+        </section>
+
+        <section id="arcade">
+            <div class="section-head">
+                <h2 class="section-title" data-i18n="arcade">ARCADE</h2>
+                <div class="section-meta">// ALL TITLES</div>
+            </div>
+            <div class="games-grid">
+                <a href="space-invaders.html" class="game-card gc-space-invaders">
+                    <div class="card-thumb">
+                        <span class="card-id">#01</span>
+                        <span class="card-difficulty">⭐ EASY</span>
+                        <img src="screenshots/space-invaders.jpeg" alt="SPACE INVADERS">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>SPACE INVADERS</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="si_desc">1978 经典之作。CRT 复古绿，敌方矩阵阵列移动，难度随消灭数递增。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_matrix_move">MATRIX MOVE</span>
+                            <span class="card-tag" data-i18n="tag_diff_scal">DIFFICULTY SCALE</span>
                         </div>
                     </div>
                 </a>
 
-                <!-- Add more game cards here following the same pattern -->
-                <!-- Example for future games:
-                <a class="game-card" href="game2.html">
-                    <img src="screenshot-game2.png" alt="GAME NAME" class="game-thumbnail">
-                    <div class="game-content">
-                        <h3 class="game-title">GAME NAME</h3>
-                        <p class="game-description" data-i18n="game2_description">
-                            Game description goes here...
-                        </p>
-                        <div class="game-footer">
-                            <div class="game-tags">
-                                <span class="game-tag">Tag1</span>
-                                <span class="game-tag">Tag2</span>
-                            </div>
-                            <div class="play-button">
-                                <span data-i18n="play_button">Play</span>
-                                <i data-lucide="play"></i>
-                            </div>
+                <a href="pong.html" class="game-card gc-pong">
+                    <div class="card-thumb">
+                        <span class="card-id">#02</span>
+                        <span class="card-difficulty">⭐ EASY</span>
+                        <img src="screenshots/pong.jpeg" alt="PONG">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>PONG</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="pong_desc">1972 Atari 元祖。黑白极简，AI Lerp 追踪 + 角度反射公式。支持双人 / 人机。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_ai_lerp">AI LERP</span>
+                            <span class="card-tag" data-i18n="tag_reflect">ANGLE REFLECT</span>
                         </div>
                     </div>
                 </a>
-                -->
+
+                <a href="dino.html" class="game-card gc-dino">
+                    <div class="card-thumb">
+                        <span class="card-id">#03</span>
+                        <span class="card-difficulty">⭐ EASY</span>
+                        <img src="screenshots/dino.jpeg" alt="T-REX RUN">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>T-REX RUN</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="dino_desc">致敬 Chrome 离线小恐龙。像素艺术，无限滚动地形，宽松碰撞箱带来好手感。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_pixel_art">PIXEL ART</span>
+                            <span class="card-tag" data-i18n="tag_infinite_scroll">INFINITE SCROLL</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="snake.html" class="game-card gc-snake">
+                    <div class="card-thumb">
+                        <span class="card-id">#04</span>
+                        <span class="card-difficulty">⭐⭐ NORMAL</span>
+                        <img src="screenshots/snake.jpeg" alt="SNAKE">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>SNAKE</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="snake_desc">Neo-arcade 霓虹贪吃蛇。链表队列移动，固定 timestep 节奏，方向缓存防误操作。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_queue">QUEUE</span>
+                            <span class="card-tag" data-i18n="tag_fixed_tick">FIXED TICK</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="minesweeper.html" class="game-card gc-minesweeper">
+                    <div class="card-thumb">
+                        <span class="card-id">#05</span>
+                        <span class="card-difficulty">⭐⭐ NORMAL</span>
+                        <img src="screenshots/minesweeper.jpeg" alt="MINESWEEPER">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>MINESWEEPER</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="mine_desc">Windows 95 怀旧。DOM grid 实现，Flood Fill 自动展开，首次点击安全保证。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">DOM</span>
+                            <span class="card-tag" data-i18n="tag_flood_fill">FLOOD FILL</span>
+                            <span class="card-tag" data-i18n="tag_bfs">BFS</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="tower-climb.html" class="game-card gc-tower-climb">
+                    <div class="card-thumb">
+                        <span class="card-id">#06</span>
+                        <span class="card-difficulty">⭐⭐ NORMAL</span>
+                        <img src="screenshots/tower-climb.jpeg" alt="TOWER CLIMB">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>TOWER CLIMB</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="tower_desc">工业 dystopian 下落。摄像机平滑跟随，平台随机生成，死亡线追击节奏紧张。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_camera">CAMERA</span>
+                            <span class="card-tag" data-i18n="tag_parallax">PARALLAX</span>
+                        </div>
+                    </div>
+                </a>
             </div>
+        </section>
+
+        <section id="roadmap" class="roadmap">
+            <h2 class="roadmap-title" data-i18n="roadmap_title">更多游戏即将上线</h2>
+            <p class="roadmap-desc" data-i18n="roadmap_desc">2048 / 打砖块 / 黄金矿工 / 五子棋 / 俄罗斯方块 等已在路上。在 GitHub Issues 跟进进度或认领实现。</p>
+            <a href="https://github.com/wyf0931/oma-games/issues" target="_blank" rel="noopener" class="roadmap-link">
+                <span data-i18n="view_roadmap">VIEW ROADMAP</span>
+                <span>→</span>
+            </a>
         </section>
     </main>
 
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="https://ohmyagent.ai" target="_blank" rel="noopener">OhMyAgent</a>
-                    <a href="https://github.com/yourusername/oma-games" target="_blank" rel="noopener">GitHub</a>
-                </div>
-                <p class="footer-copyright">© 2024 OhMyAgent. All rights reserved.</p>
+        <div class="footer-inner">
+            <div class="footer-copy">© 2026 OHMYAGENT · <span data-i18n="footer_note">BUILT WITH VIBE CODING</span></div>
+            <div class="footer-links">
+                <a href="https://games.ohmyagent.ai">games.ohmyagent.ai</a>
+                <a href="https://github.com/wyf0931/oma-games" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/wyf0931/oma-games/issues" target="_blank" rel="noopener">Issues</a>
             </div>
         </div>
     </footer>
 
+    <script src="shared/oma-games.js"></script>
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+        const { i18n, theme } = OmaGames;
 
-        // i18n configuration
-        const translations = {
-            en: {
-                site_title: 'OhMyAgent Games',
-                hero_title: 'Game Center',
-                hero_description: 'Lightweight HTML5 games powered by Vibe Coding development',
-                tank_title: 'Tank Command',
-                tank_description: 'Lightweight HTML5 games powered by Vibe Coding development',
-                play_button: 'Play'
-            },
+        i18n.load({
             zh: {
-                site_title: 'OhMyAgent 游戏中心',
-                hero_title: '游戏中心',
-                hero_description: '由 Vibe Coding 开发模式实现的轻量级 HTML5 游戏',
-                tank_title: '坦克大战',
-                tank_description: '由 Vibe Coding 开发模式实现的轻量级 HTML5 游戏',
-                play_button: '开始游戏'
+                nav_arcade: '街机',
+                nav_featured: '推荐',
+                nav_roadmap: '路线图',
+                hero_badge: 'CLOUDFLARE 边缘 · 零后端',
+                hero_title: 'OMA GAMES',
+                hero_subtitle: '// 街机游戏中心 //',
+                hero_desc: '纯前端实现的轻量游戏合集，每一款都致敬经典玩法。无后端、无追踪、无负担 — 双击即玩。',
+                stat_games: '款游戏',
+                stat_roadmap: '开发中',
+                stat_fps: '帧 / 秒',
+                featured: '特色推荐',
+                arcade: '街机',
+                tank_desc: '军事 HUD 风格的经典坦克大战，行为树驱动的敌方 AI，可自定义敌机数量、威胁等级和武器系统。',
+                featured_tag: '★ 旗舰作品',
+                play: '开始游戏',
+                tag_behavior_tree: '行为树',
+                tag_aabb: 'AABB 碰撞',
+                tag_fsm: '状态机',
+                si_desc: '1978 经典之作。CRT 复古绿，敌方矩阵阵列移动，难度随消灭数递增。',
+                tag_matrix_move: '矩阵移动',
+                tag_diff_scal: '难度递增',
+                pong_desc: '1972 Atari 元祖。黑白极简，AI Lerp 追踪 + 角度反射公式。支持双人 / 人机。',
+                tag_ai_lerp: 'AI 追踪',
+                tag_reflect: '角度反射',
+                dino_desc: '致敬 Chrome 离线小恐龙。像素艺术，无限滚动地形，宽松碰撞箱带来好手感。',
+                tag_pixel_art: '像素艺术',
+                tag_infinite_scroll: '无限滚动',
+                snake_desc: 'Neo-arcade 霓虹贪吃蛇。链表队列移动，固定 timestep 节奏，方向缓存防误操作。',
+                tag_queue: '链表队列',
+                tag_fixed_tick: '固定节拍',
+                mine_desc: 'Windows 95 怀旧。DOM grid 实现，Flood Fill 自动展开，首次点击安全保证。',
+                tag_flood_fill: '泛洪填充',
+                tag_bfs: '广度优先',
+                tower_desc: '工业 dystopian 下落。摄像机平滑跟随，平台随机生成，死亡线追击节奏紧张。',
+                tag_camera: '摄像机跟随',
+                tag_parallax: '视差滚动',
+                roadmap_title: '更多游戏即将上线',
+                roadmap_desc: '2048 / 打砖块 / 黄金矿工 / 五子棋 / 俄罗斯方块 等已在路上。在 GitHub Issues 跟进进度或认领实现。',
+                view_roadmap: '查看路线图',
+                footer_note: 'VIBE CODING 出品'
+            },
+            en: {
+                nav_arcade: 'ARCADE',
+                nav_featured: 'FEATURED',
+                nav_roadmap: 'ROADMAP',
+                hero_badge: 'CLOUDFLARE EDGE · ZERO BACKEND',
+                hero_title: 'OMA GAMES',
+                hero_subtitle: '// ARCADE GAME HUB //',
+                hero_desc: 'Lightweight arcade collection built pure-frontend. Every title pays homage to a classic. No backend, no trackers, no bloat — just click and play.',
+                stat_games: 'GAMES',
+                stat_roadmap: 'ROADMAP',
+                stat_fps: 'FPS',
+                featured: 'FEATURED',
+                arcade: 'ARCADE',
+                tank_desc: 'Military HUD tank battle. Behavior-tree-driven enemy AI. Customize hostile count, threat level, and weapon systems.',
+                featured_tag: '★ FLAGSHIP TITLE',
+                play: 'PLAY',
+                tag_behavior_tree: 'BEHAVIOR TREE',
+                tag_aabb: 'AABB COLLISION',
+                tag_fsm: 'FSM',
+                si_desc: '1978 classic. CRT phosphor green, matrix formation movement, difficulty scales as you clear invaders.',
+                tag_matrix_move: 'MATRIX MOVE',
+                tag_diff_scal: 'DIFFICULTY SCALE',
+                pong_desc: '1972 Atari original. Minimalist black & white, AI Lerp tracking + angle reflection formula. 2P vs AI.',
+                tag_ai_lerp: 'AI LERP',
+                tag_reflect: 'ANGLE REFLECT',
+                dino_desc: 'Homage to Chrome offline dino. Pixel art, infinite scrolling terrain, lenient hitbox for great feel.',
+                tag_pixel_art: 'PIXEL ART',
+                tag_infinite_scroll: 'INFINITE SCROLL',
+                snake_desc: 'Neo-arcade neon snake. Linked-list queue movement, fixed timestep, direction buffer to prevent misinputs.',
+                tag_queue: 'QUEUE',
+                tag_fixed_tick: 'FIXED TICK',
+                mine_desc: 'Windows 95 nostalgia. DOM grid implementation, Flood Fill auto-reveal, first-click safety guaranteed.',
+                tag_flood_fill: 'FLOOD FILL',
+                tag_bfs: 'BFS',
+                tower_desc: 'Industrial dystopian descent. Smooth camera follow, procedural platforms, deathline chase ratchets tension.',
+                tag_camera: 'CAMERA',
+                tag_parallax: 'PARALLAX',
+                roadmap_title: 'More Titles Coming',
+                roadmap_desc: '2048 / Breakout / Gold Miner / Gomoku / Tetris and more are on the way. Track progress or claim work via GitHub Issues.',
+                view_roadmap: 'VIEW ROADMAP',
+                footer_note: 'BUILT WITH VIBE CODING'
             }
-        };
-
-        // State management
-        let currentLang = localStorage.getItem('oma_games_lang') || 'zh';
-        let currentTheme = localStorage.getItem('oma_games_theme') || 'dark';
-
-        // DOM elements
-        const langToggle = document.getElementById('lang-toggle');
-        const themeToggle = document.getElementById('theme-toggle');
-
-        // Language toggle function
-        function setLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('oma_games_lang', lang);
-
-            // Update all elements with data-i18n attribute
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[lang] && translations[lang][key]) {
-                    element.textContent = translations[lang][key];
-                }
-            });
-
-            // Update document language
-            document.documentElement.lang = lang;
-        }
-
-        // Theme toggle function
-        function setTheme(theme) {
-            currentTheme = theme;
-            localStorage.setItem('oma_games_theme', theme);
-
-            // Update document attribute
-            document.documentElement.setAttribute('data-theme', theme);
-
-            // Update icon
-            const icon = themeToggle.querySelector('i');
-            if (theme === 'dark') {
-                icon.setAttribute('data-lucide', 'sun');
-            } else {
-                icon.setAttribute('data-lucide', 'moon');
-            }
-
-            // Recreate icons
-            lucide.createIcons();
-        }
-
-        // Event listeners
-        langToggle.addEventListener('click', () => {
-            setLanguage(currentLang === 'en' ? 'zh' : 'en');
         });
+        theme.init();
 
-        themeToggle.addEventListener('click', () => {
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        });
-
-        // Initialize
-        setLanguage(currentLang);
-        setTheme(currentTheme);
+        document.getElementById('lang-btn').addEventListener('click', () => i18n.toggle());
+        document.getElementById('theme-btn').addEventListener('click', () => theme.toggle());
     </script>
 </body>
 </html>
