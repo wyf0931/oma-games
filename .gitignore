@@ -1,5 +1,46 @@
+# === Dependencies ===
 node_modules/
-*.png
+
+# === Cloudflare / Wrangler (本地部署缓存与账号信息) ===
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# === Claude Code 本地配置 ===
+.claude/settings.local.json
+.claude/.credentials.json
+
+# === 操作系统 / 编辑器 ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === 日志 ===
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === 环境变量 / 密钥 ===
+.env
+.env.*
+!.env.example
+
+# === 构建产物 ===
+dist/
+build/
+.output/
+
+# === 本地自动化 / 临时脚本（playwright 调试等）===
 helper.html
-pw-shot*.js
 tank-auto.html
+pw-shot*.js
+pw-shot*.png
+
+# === 其他临时文件 ===
+*.tmp
+*.bak
