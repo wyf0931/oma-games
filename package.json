@@ -18,7 +18,8 @@
     "url": "https://github.com/ohmyscott/oma-games/issues"
   },
   "homepage": "https://github.com/ohmyscott/oma-games#readme",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "playwright": "^1.59.0"
   }
 }
