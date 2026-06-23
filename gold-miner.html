@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOLD MINER — 黄金矿工</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            --mine-bg: #1a0f08;
+            --mine-bg-2: #2a1810;
+            --mine-soil: #3d2418;
+            --mine-stone: #4a3528;
+            --gold: #ffd700;
+            --gold-bright: #ffed4e;
+            --gold-deep: #c79a00;
+            --gold-glow: rgba(255, 215, 0, 0.55);
+            --diamond: #00ddff;
+            --diamond-glow: rgba(0, 221, 255, 0.55);
+            --rock: #7a7a7a;
+            --rock-dark: #4a4a4a;
+            --bag: #8b4513;
+            --bag-light: #b06a2c;
+            --rust: #c44518;
+            --rust-glow: rgba(196, 69, 24, 0.5);
+            --warn: #ff5530;
+            --warn-glow: rgba(255, 85, 48, 0.6);
+
+            --bg-primary: var(--mine-bg);
+            --bg-secondary: var(--mine-bg-2);
+            --bg-card: #221510;
+            --text-primary: var(--gold);
+            --text-secondary: #b8862c;
+            --text-dim: #6e4e1f;
+            --border: var(--mine-stone);
+            --border-strong: var(--gold-deep);
+            --accent: var(--gold);
+            --accent-strong: var(--gold-bright);
+            --accent-contrast: var(--mine-bg);
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background:
+                radial-gradient(ellipse at top, #2a1810 0%, #1a0f08 60%, #0d0704 100%);
+            color: var(--gold);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.04) 0, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(196, 69, 24, 0.04) 0, transparent 40%);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.35;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0,
+                    transparent 80px,
+                    rgba(255, 215, 0, 0.04) 80px,
+                    rgba(255, 215, 0, 0.04) 81px
+                );
+        }
+
+        #app {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mine-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--mine-stone);
+            border-radius: 6px;
+            box-shadow:
+                inset 0 0 30px rgba(0, 0, 0, 0.6),
+                0 0 24px rgba(255, 215, 0, 0.08),
+                0 8px 24px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .mine-panel::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border: 1px dashed rgba(255, 215, 0, 0.15);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        #game-area { padding: 16px; }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+            border: 2px solid var(--mine-stone);
+            background: linear-gradient(180deg, #1a0f08, #2a1810);
+            font-family: 'Russo One', sans-serif;
+            font-size: 14px;
+            letter-spacing: 2px;
+            border-radius: 4px;
+        }
+
+        .hud-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 11px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .hud-value {
+            color: var(--gold);
+            font-weight: normal;
+            font-size: 22px;
+            text-shadow: 0 0 8px var(--gold-glow);
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .hud-value.warn {
+            color: var(--warn);
+            text-shadow: 0 0 10px var(--warn-glow);
+        }
+
+        .hud-value.diamond {
+            color: var(--diamond);
+            text-shadow: 0 0 8px var(--diamond-glow);
+        }
+
+        canvas {
+            display: block;
+            background: var(--mine-bg);
+            border: 2px solid var(--mine-stone);
+            border-radius: 4px;
+            box-shadow:
+                0 0 30px rgba(255, 215, 0, 0.1),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+        }
+
+        #config-panel {
+            width: 280px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-title {
+            font-family: 'Russo One', sans-serif;
+            font-size: 22px;
+            color: var(--gold);
+            text-shadow: 0 0 10px var(--gold-glow);
+            letter-spacing: 3px;
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--gold-deep);
+        }
+
+        .panel-title .pick {
+            color: var(--rust);
+            text-shadow: 0 0 8px var(--rust-glow);
+        }
+
+        .config-group {
+            background: var(--bg-secondary);
+            border: 1px solid var(--mine-stone);
+            padding: 12px;
+            border-radius: 4px;
+        }
+
+        .config-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .config-group label::before {
+            content: '◆ ';
+            color: var(--gold);
+        }
+
+        .hint {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            letter-spacing: 1px;
+        }
+
+        .oma-diff-btn {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--mine-bg);
+            border-color: var(--mine-stone);
+            color: var(--text-secondary);
+        }
+        .oma-diff-btn:hover {
+            color: var(--gold);
+            border-color: var(--gold-deep);
+        }
+        .oma-diff-btn.active {
+            background: var(--gold);
+            color: var(--mine-bg);
+            text-shadow: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+
+        #btn-start {
+            padding: 14px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 18px;
+            letter-spacing: 4px;
+            background: linear-gradient(180deg, #2a1810, #1a0f08);
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            text-shadow: 0 0 8px var(--gold-glow);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        #btn-start:hover:not(:disabled) {
+            background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+            color: var(--mine-bg);
+            text-shadow: none;
+            box-shadow: 0 0 24px var(--gold-glow);
+        }
+
+        #btn-start:disabled {
+            color: var(--text-dim);
+            border-color: var(--text-dim);
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 8px 10px;
+            font-size: 12px;
+            align-items: center;
+        }
+
+        .legend-icon {
+            width: 22px;
+            height: 22px;
+            display: inline-block;
+            border-radius: 3px;
+        }
+
+        .legend-name {
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .legend-value {
+            color: var(--gold);
+            font-family: 'Russo One', sans-serif;
+            text-align: right;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            font-size: 12px;
+        }
+        .stat-grid .lbl { color: var(--text-dim); }
+        .stat-grid .val { color: var(--gold); text-align: right; }
+
+        #controls-help {
+            font-size: 11px;
+            line-height: 1.9;
+            color: var(--text-dim);
+            text-align: center;
+            padding-top: 12px;
+            border-top: 1px dashed var(--gold-deep);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .oma-key {
+            background: var(--mine-bg);
+            border-color: var(--gold-deep);
+            color: var(--gold);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* === Unified game header theme overrides (shared/oma-games.css) === */
+        :root {
+            --oma-header-bg: rgba(26, 15, 8, 0.85);
+            --oma-header-fg: var(--gold);
+            --oma-header-hover-bg: var(--gold);
+            --oma-header-hover-fg: var(--mine-bg);
+            --oma-header-border: rgba(255, 215, 0, 0.4);
+            --oma-header-glow: rgba(255, 215, 0, 0.4);
+        }
+        .oma-game-header {
+            font-family: 'Russo One', sans-serif;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
+            50%      { box-shadow: 0 0 0 8px rgba(255, 215, 0, 0); }
+        }
+
+        @media (max-width: 1200px) {
+            #app { flex-direction: column; }
+            #config-panel { width: 100%; max-width: 900px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="mine-panel" id="game-area">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="score">分数</span>
+                    <span class="hud-value" id="score">0</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="target">目标</span>
+                    <span class="hud-value diamond" id="target">500</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="time">时间</span>
+                    <span class="hud-value" id="time">60</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="level">关卡</span>
+                    <span class="hud-value" id="level">1</span>
+                </div>
+            </div>
+            <canvas id="canvas" width="900" height="600"></canvas>
+        </div>
+
+        <div class="mine-panel" id="config-panel">
+            <div class="panel-title" data-i18n="title">GOLD MINER <span class="pick">⛏</span></div>
+
+            <div class="config-group">
+                <label data-i18n="difficulty">难度</label>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced">高级</button>
+                </div>
+                <div class="hint" data-i18n="diff_hint">时间、目标分与物品密度</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="engage">▶ 开始挖矿</span></button>
+
+            <div class="config-group">
+                <label data-i18n="legend">物品图鉴</label>
+                <div class="legend" id="legend"></div>
+            </div>
+
+            <div class="config-group">
+                <label data-i18n="stats">状态</label>
+                <div class="stat-grid">
+                    <span class="lbl" data-i18n="high_score">最高分</span>
+                    <span class="val" id="high-score">0</span>
+                    <span class="lbl" data-i18n="items_left">剩余物品</span>
+                    <span class="val" id="items-left">—</span>
+                    <span class="lbl" data-i18n="hook_state">钩爪状态</span>
+                    <span class="val" id="hook-state">—</span>
+                </div>
+            </div>
+
+            <div id="controls-help">
+                <span class="oma-key">SPACE</span> <span data-i18n="launch">发射钩爪</span><br>
+                <span class="oma-key">ENTER</span> <span data-i18n="start">开始</span>
+                &nbsp;<span class="oma-key">R</span> <span data-i18n="restart">重玩</span>
+                &nbsp;<span class="oma-key">P</span> <span data-i18n="pause">暂停</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+        const { i18n, theme, input, loop, fsm, DIFFICULTY, clamp, randInt, pick } = OmaGames;
+
+        // ===== i18n =====
+        i18n.load({
+            zh: {
+                title: '黄金矿工',
+                difficulty: '难度',
+                diff_hint: '时间、目标分与物品密度',
+                engage: '▶ 开始挖矿',
+                legend: '物品图鉴',
+                stats: '状态',
+                high_score: '最高分',
+                items_left: '剩余物品',
+                hook_state: '钩爪状态',
+                score: '分数',
+                target: '目标',
+                time: '时间',
+                level: '关卡',
+                launch: '发射钩爪',
+                start: '开始',
+                restart: '重玩',
+                pause: '暂停',
+                press_start: '按 [ ENTER ] 或点击 [ 开始挖矿 ]',
+                level_complete: '关卡完成！',
+                level_failed: '挖矿失败！',
+                game_over: '游戏结束',
+                final_score: '最终分数',
+                press_continue: '按 [ R ] 进入下一关',
+                press_retry: '按 [ R ] 重新开始',
+                victory: '通关！矿洞已掏空',
+                paused: '已暂停',
+                paused_hint: '按 [ P ] 继续',
+                // Item labels
+                it_gold_big: '大金块',
+                it_gold_small: '小金块',
+                it_diamond: '钻石',
+                it_rock_big: '大石头',
+                it_rock_small: '小石头',
+                it_bag: '神秘袋',
+                // Hook state labels
+                hs_swinging: '摆动中',
+                hs_launching: '发射中',
+                hs_retracting: '拉回中',
+                hs_caught: '抓取!',
+                hs_idle: '空闲'
+            },
+            en: {
+                title: 'GOLD MINER',
+                difficulty: 'Difficulty',
+                diff_hint: 'Time, target score & item density',
+                engage: '▶ START DIGGING',
+                legend: 'ITEM LEGEND',
+                stats: 'Status',
+                high_score: 'High Score',
+                items_left: 'Items Left',
+                hook_state: 'Hook State',
+                score: 'SCORE',
+                target: 'TARGET',
+                time: 'TIME',
+                level: 'LEVEL',
+                launch: 'Launch hook',
+                start: 'Start',
+                restart: 'Retry',
+                pause: 'Pause',
+                press_start: 'PRESS [ ENTER ] OR CLICK [ START DIGGING ]',
+                level_complete: 'LEVEL CLEAR!',
+                level_failed: 'DIG FAILED!',
+                game_over: 'GAME OVER',
+                final_score: 'FINAL SCORE',
+                press_continue: 'PRESS [ R ] FOR NEXT LEVEL',
+                press_retry: 'PRESS [ R ] TO RETRY',
+                victory: 'VICTORY! Mine Cleared',
+                paused: 'PAUSED',
+                paused_hint: 'PRESS [ P ] TO RESUME',
+                it_gold_big: 'Gold (Large)',
+                it_gold_small: 'Gold (Small)',
+                it_diamond: 'Diamond',
+                it_rock_big: 'Rock (Large)',
+                it_rock_small: 'Rock (Small)',
+                it_bag: 'Mystery Bag',
+                hs_swinging: 'Swinging',
+                hs_launching: 'Launching',
+                hs_retracting: 'Retracting',
+                hs_caught: 'Caught!',
+                hs_idle: 'Idle'
+            }
+        });
+        theme.init();
+        input.init();
+        OmaGames.ui.header();
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const scoreEl = document.getElementById('score');
+        const targetEl = document.getElementById('target');
+        const timeEl = document.getElementById('time');
+        const levelEl = document.getElementById('level');
+        const highScoreEl = document.getElementById('high-score');
+        const itemsLeftEl = document.getElementById('items-left');
+        const hookStateEl = document.getElementById('hook-state');
+        const btnStart = document.getElementById('btn-start');
+        const legendEl = document.getElementById('legend');
+
+        // ===== Constants =====
+        const MINER_X = W / 2;
+        const MINER_Y = 70;           // top-center pivot
+        const ROPE_PIVOT_Y = MINER_Y + 18;  // where rope hangs from
+        const ROPE_BASE_LEN = 60;     // resting rope length
+        const MAX_ROPE_LEN = 540;     // max extension before auto-retract
+        const SWING_MAX = Math.PI / 2.4;  // ~75° either side (within downward arc)
+        const SWING_SPEED = 0.0018;   // rad per ms (angular frequency ω)
+
+        // ===== Item types =====
+        // pullSpeed: rope-extension speed multiplier when retracting with this item.
+        // Higher = faster pull (small/light items). Lower = heavy / slow.
+        const ITEM_TYPES = {
+            gold_big:   { r: 28, value: 250, pullSpeed: 1.0,  color: '#ffd700', accent: '#fff3a0', weight: 5 },
+            gold_small: { r: 14, value: 50,  pullSpeed: 3.0,  color: '#ffd700', accent: '#fff3a0', weight: 2 },
+            diamond:    { r: 10, value: 600, pullSpeed: 5.0,  color: '#00ddff', accent: '#bff5ff', weight: 1 },
+            rock_big:   { r: 28, value: 20,  pullSpeed: 0.8,  color: '#7a7a7a', accent: '#a5a5a5', weight: 6 },
+            rock_small: { r: 14, value: 5,   pullSpeed: 2.0,  color: '#7a7a7a', accent: '#a5a5a5', weight: 3 },
+            bag:        { r: 18, value: 0,   pullSpeed: 1.5,  color: '#8b4513', accent: '#b06a2c', weight: 4 } // value resolved on catch (random)
+        };
+
+        // Bag random outcomes (mystery)
+        function resolveBagValue() {
+            const outcomes = [
+                { value: 0,   weight: 3 },
+                { value: 50,  weight: 3 },
+                { value: 150, weight: 2 },
+                { value: 500, weight: 1 },
+                { value: 800, weight: 1 }
+            ];
+            const total = outcomes.reduce((s, o) => s + o.weight, 0);
+            let roll = Math.random() * total;
+            for (const o of outcomes) {
+                roll -= o.weight;
+                if (roll <= 0) return o.value;
+            }
+            return 0;
+        }
+
+        // ===== Difficulty params =====
+        // time(sec), target score, item counts per type, maxLevel
+        const DIFF_PARAMS = {
+            beginner: {
+                time: 60,
+                targetBase: 500,
+                items: { gold_big: 3, gold_small: 6, diamond: 3, rock_big: 2, rock_small: 4, bag: 1 }
+            },
+            intermediate: {
+                time: 60,
+                targetBase: 800,
+                items: { gold_big: 2, gold_small: 4, diamond: 2, rock_big: 4, rock_small: 6, bag: 1 }
+            },
+            advanced: {
+                time: 45,
+                targetBase: 1200,
+                items: { gold_big: 1, gold_small: 3, diamond: 1, rock_big: 6, rock_small: 8, bag: 1 }
+            }
+        };
+
+        const MAX_LEVEL = 5;
+
+        let config = { difficulty: 'beginner' };
+        let highScore = 0;
+
+        document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.difficulty = btn.dataset.level;
+            });
+        });
+        btnStart.addEventListener('click', () => game.start());
+
+        // ===== Render legend (item icons + values) =====
+        function renderLegend() {
+            const rows = [
+                { key: 'gold_big',   swatch: 'radial-gradient(circle at 35% 35%, #fff3a0, #ffd700 55%, #c79a00)' },
+                { key: 'gold_small', swatch: 'radial-gradient(circle at 35% 35%, #fff3a0, #ffd700 55%, #c79a00)' },
+                { key: 'diamond',    swatch: 'linear-gradient(135deg, #bff5ff, #00ddff 60%, #0078a0)' },
+                { key: 'rock_big',   swatch: 'radial-gradient(circle at 35% 35%, #a5a5a5, #7a7a7a 55%, #4a4a4a)' },
+                { key: 'rock_small', swatch: 'radial-gradient(circle at 35% 35%, #a5a5a5, #7a7a7a 55%, #4a4a4a)' },
+                { key: 'bag',        swatch: 'radial-gradient(circle at 35% 35%, #b06a2c, #8b4513 55%, #5a2d0c)' }
+            ];
+            legendEl.innerHTML = rows.map(r => {
+                const t = ITEM_TYPES[r.key];
+                const valueLabel = r.key === 'bag' ? '?' : t.value;
+                return `
+                    <span class="legend-icon" style="background: ${r.swatch}; box-shadow: 0 0 8px ${t.color}55"></span>
+                    <span class="legend-name">${i18n.t('it_' + r.key)}</span>
+                    <span class="legend-value">${valueLabel}</span>
+                `;
+            }).join('');
+        }
+
+        // ===== FSM =====
+        const STATE = fsm({
+            MENU:            { start: 'PLAYING' },
+            PLAYING:         { pause: 'PAUSED', complete: 'LEVEL_COMPLETE', fail: 'GAMEOVER' },
+            PAUSED:          { pause: 'PLAYING' },
+            LEVEL_COMPLETE:  { next: 'PLAYING', restart: 'PLAYING', end: 'GAMEOVER' },
+            GAMEOVER:        { restart: 'PLAYING' }
+        }, 'MENU');
+
+        // Hook sub-state FSM (only meaningful during PLAYING)
+        const HOOK_STATES = ['SWINGING', 'LAUNCHING', 'RETRACTING', 'CAUGHT'];
+
+        // ===== Game state =====
+        const game = {
+            // Core
+            score: 0,
+            level: 1,
+            timeLeft: 60,
+            target: 500,
+            lastTickMs: 0,
+
+            // Hook
+            hook: {
+                state: 'SWINGING',
+                angle: 0,         // current swing angle (radians, 0 = straight down)
+                swingT: 0,        // accumulated time for sin() swing
+                length: ROPE_BASE_LEN,  // current rope length
+                caught: null      // item being hauled, or null
+            },
+
+            items: [],            // { x, y, type, vx, vy, ... } — most are static
+            floats: [],           // floating "+N" texts: {x, y, text, color, life}
+
+            // Effects
+            shake: 0,
+            flash: 0,
+
+            // Convenience getters
+            get hookTipX() {
+                return MINER_X + Math.sin(this.hook.angle) * this.hook.length;
+            },
+            get hookTipY() {
+                return ROPE_PIVOT_Y + Math.cos(this.hook.angle) * this.hook.length;
+            },
+
+            // ===== Lifecycle =====
+            start() {
+                this.score = 0;
+                this.level = 1;
+                this.startLevel();
+                STATE.set('PLAYING');
+                btnStart.disabled = true;
+                this.updateHud();
+            },
+
+            startLevel() {
+                const params = DIFF_PARAMS[config.difficulty];
+                this.timeLeft = Math.max(20, params.time - (this.level - 1) * 4);
+                this.target = params.targetBase + (this.level - 1) * 250;
+                this.spawnItems();
+                this.hook.state = 'SWINGING';
+                this.hook.angle = 0;
+                this.hook.swingT = 0;
+                this.hook.length = ROPE_BASE_LEN;
+                this.hook.caught = null;
+                this.floats = [];
+                this.lastTickMs = performance.now();
+            },
+
+            spawnItems() {
+                const params = DIFF_PARAMS[config.difficulty];
+                const counts = Object.assign({}, params.items);
+
+                // Density scales slightly with level (fewer items as level rises — harder)
+                const densityMul = Math.max(0.7, 1 - (this.level - 1) * 0.08);
+                this.items = [];
+
+                // Mine area: below ROPE_PIVOT_Y + 60, above H - 30
+                const minX = 40, maxX = W - 40;
+                const minY = ROPE_PIVOT_Y + 80, maxY = H - 50;
+
+                const placeAttempt = (r) => {
+                    for (let tries = 0; tries < 40; tries++) {
+                        const x = randInt(minX + r, maxX - r);
+                        const y = randInt(minY + r, maxY - r);
+                        const ok = this.items.every(it => {
+                            const dx = it.x - x, dy = it.y - y;
+                            return Math.hypot(dx, dy) > it.r + r + 6;
+                        });
+                        if (ok) return { x, y };
+                    }
+                    return null;
+                };
+
+                for (const type of Object.keys(counts)) {
+                    const want = Math.max(0, Math.round(counts[type] * densityMul));
+                    for (let i = 0; i < want; i++) {
+                        const def = ITEM_TYPES[type];
+                        const pos = placeAttempt(def.r);
+                        if (!pos) continue;
+                        this.items.push({
+                            x: pos.x,
+                            y: pos.y,
+                            type,
+                            r: def.r,
+                            // pre-compute rock shape seed for irregular polygons
+                            seed: Math.floor(Math.random() * 1000),
+                            // small wobble for liveliness
+                            phase: Math.random() * Math.PI * 2
+                        });
+                    }
+                }
+            },
+
+            // ===== Update =====
+            update(dt) {
+                this.shake = Math.max(0, this.shake - dt * 0.02);
+                this.flash = Math.max(0, this.flash - dt * 0.005);
+
+                if (STATE.is('MENU')) {
+                    if (input.pressed('Enter')) this.start();
+                    return;
+                }
+                if (STATE.is('PAUSED')) {
+                    if (input.pressed('p', 'P')) STATE.transition('pause');
+                    return;
+                }
+                if (STATE.is('GAMEOVER')) {
+                    if (input.pressed('r', 'R')) this.start();
+                    return;
+                }
+                if (STATE.is('LEVEL_COMPLETE')) {
+                    if (input.pressed('r', 'R')) {
+                        this.level++;
+                        if (this.level > MAX_LEVEL) {
+                            STATE.transition('end');
+                        } else {
+                            this.startLevel();
+                            STATE.transition('next');
+                        }
+                    }
+                    return;
+                }
+
+                // PLAYING
+                if (input.pressed('p', 'P')) { STATE.transition('pause'); return; }
+
+                // Timer
+                this.timeLeft -= dt / 1000;
+                if (this.timeLeft <= 0) {
+                    this.timeLeft = 0;
+                    this.endLevel();
+                    return;
+                }
+
+                this.updateHook(dt);
+                this.updateFloats(dt);
+                this.updateHud();
+            },
+
+            updateHook(dt) {
+                const h = this.hook;
+                if (h.state === 'SWINGING') {
+                    h.swingT += dt;
+                    h.angle = SWING_MAX * Math.sin(h.swingT * SWING_SPEED);
+                    if (input.pressed(' ')) {
+                        h.state = 'LAUNCHING';
+                    }
+                    return;
+                }
+
+                if (h.state === 'LAUNCHING') {
+                    const launchSpeed = 0.45 * dt; // px per ms scaled
+                    h.length += launchSpeed;
+                    // Check collisions
+                    const tx = this.hookTipX, ty = this.hookTipY;
+                    const hit = this.firstHitItem(tx, ty);
+                    if (hit) {
+                        h.caught = hit;
+                        hit.caught = true;
+                        h.state = 'CAUGHT';
+                        this.shake = Math.min(1, this.shake + 0.3);
+                        return;
+                    }
+                    // Out of rope OR off-screen
+                    if (h.length >= MAX_ROPE_LEN || tx < 0 || tx > W || ty > H - 4) {
+                        h.state = 'RETRACTING';
+                    }
+                    return;
+                }
+
+                if (h.state === 'CAUGHT') {
+                    // brief pause then transition to retracting with the item
+                    h._caughtT = (h._caughtT || 0) + dt;
+                    if (h._caughtT > 120) {
+                        h._caughtT = 0;
+                        h.state = 'RETRACTING';
+                    }
+                    return;
+                }
+
+                if (h.state === 'RETRACTING') {
+                    let baseSpeed = 0.5; // empty retract: fast
+                    if (h.caught) {
+                        baseSpeed = ITEM_TYPES[h.caught.type].pullSpeed * 0.25;
+                    }
+                    h.length -= baseSpeed * dt;
+                    if (h.caught) {
+                        // Drag the caught item along with hook tip
+                        h.caught.x = this.hookTipX;
+                        h.caught.y = this.hookTipY + ITEM_TYPES[h.caught.type].r * 0.4;
+                    }
+                    if (h.length <= ROPE_BASE_LEN) {
+                        h.length = ROPE_BASE_LEN;
+                        if (h.caught) {
+                            this.collect(h.caught);
+                            // remove from items
+                            this.items = this.items.filter(it => it !== h.caught);
+                            h.caught = null;
+                        }
+                        h.state = 'SWINGING';
+                        h.swingT = 0;
+                        h.angle = 0;
+                        // Check end conditions
+                        this.checkLevelEnd();
+                    }
+                    return;
+                }
+            },
+
+            firstHitItem(hx, hy) {
+                for (const it of this.items) {
+                    if (it.caught) continue;
+                    const dx = it.x - hx, dy = it.y - hy;
+                    if (Math.hypot(dx, dy) <= it.r + 4) return it;
+                }
+                return null;
+            },
+
+            collect(item) {
+                const def = ITEM_TYPES[item.type];
+                let value = def.value;
+                if (item.type === 'bag') value = resolveBagValue();
+                this.score += value;
+                this.flash = 0.3;
+                // floating text
+                const sign = value > 0 ? '+' : '';
+                this.floats.push({
+                    x: MINER_X,
+                    y: ROPE_PIVOT_Y + 30,
+                    text: `${sign}${value}`,
+                    color: value >= 500 ? '#00ddff' : value > 0 ? '#ffd700' : '#888',
+                    life: 1200,
+                    maxLife: 1200
+                });
+                if (this.score > highScore) {
+                    highScore = this.score;
+                    highScoreEl.textContent = highScore;
+                }
+            },
+
+            updateFloats(dt) {
+                for (const f of this.floats) {
+                    f.life -= dt;
+                    f.y -= dt * 0.04;
+                }
+                this.floats = this.floats.filter(f => f.life > 0);
+            },
+
+            checkLevelEnd() {
+                if (this.items.length === 0) {
+                    this.endLevel();
+                }
+            },
+
+            endLevel() {
+                if (this.score >= this.target) {
+                    if (this.level >= MAX_LEVEL) {
+                        STATE.transition('complete');
+                        STATE.transition('end'); // Victory path
+                        // actually transition: complete then end
+                        STATE.set('GAMEOVER');
+                        this._victory = true;
+                    } else {
+                        STATE.transition('complete');
+                    }
+                } else {
+                    STATE.transition('fail');
+                    this._victory = false;
+                }
+                btnStart.disabled = false;
+            },
+
+            // ===== HUD =====
+            updateHud() {
+                scoreEl.textContent = this.score;
+                targetEl.textContent = this.target;
+                timeEl.textContent = Math.ceil(this.timeLeft);
+                levelEl.textContent = this.level;
+                itemsLeftEl.textContent = this.items.filter(i => !i.caught).length;
+                const hsKey = 'hs_' + this.hook.state.toLowerCase();
+                hookStateEl.textContent = i18n.t(hsKey);
+                timeEl.classList.toggle('warn', this.timeLeft <= 10);
+            },
+
+            // ===== Draw =====
+            draw() {
+                const sx = (Math.random() - 0.5) * this.shake * 8;
+                const sy = (Math.random() - 0.5) * this.shake * 8;
+                ctx.save();
+                ctx.translate(sx, sy);
+
+                // Background
+                this.drawMineBg();
+
+                if (STATE.is('MENU')) {
+                    this.drawItems();
+                    this.drawMinerAndHook();
+                    ctx.restore();
+                    this.drawOverlay(i18n.t('title'), i18n.t('press_start'), '#ffd700');
+                    return;
+                }
+
+                if (STATE.is('PAUSED')) {
+                    this.drawItems();
+                    this.drawMinerAndHook();
+                    this.drawFloats();
+                    ctx.restore();
+                    this.drawOverlay(i18n.t('paused'), i18n.t('paused_hint'), '#ffd700');
+                    return;
+                }
+
+                if (STATE.is('LEVEL_COMPLETE')) {
+                    this.drawItems();
+                    this.drawMinerAndHook();
+                    this.drawFloats();
+                    ctx.restore();
+                    this.drawOverlay(i18n.t('level_complete'), i18n.t('press_continue'), '#ffd700');
+                    return;
+                }
+
+                if (STATE.is('GAMEOVER')) {
+                    this.drawItems();
+                    this.drawMinerAndHook();
+                    this.drawFloats();
+                    ctx.restore();
+                    const title = this._victory ? i18n.t('victory') : i18n.t('game_over');
+                    const sub = i18n.t('final_score') + ': ' + this.score + ' · ' + i18n.t('press_retry');
+                    this.drawOverlay(title, sub, this._victory ? '#00ddff' : '#ff5530');
+                    return;
+                }
+
+                // PLAYING
+                this.drawItems();
+                this.drawMinerAndHook();
+                this.drawFloats();
+                if (this.flash > 0) {
+                    ctx.fillStyle = `rgba(255, 215, 0, ${this.flash * 0.25})`;
+                    ctx.fillRect(0, 0, W, H);
+                }
+                ctx.restore();
+            },
+
+            // === Background ===
+            drawMineBg() {
+                // Soil gradient
+                const g = ctx.createLinearGradient(0, 0, 0, H);
+                g.addColorStop(0, '#1a0f08');
+                g.addColorStop(0.4, '#2a1810');
+                g.addColorStop(1, '#0d0704');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, W, H);
+
+                // Top "sky / surface" band — wooden platform
+                ctx.fillStyle = '#3d2418';
+                ctx.fillRect(0, 0, W, ROPE_PIVOT_Y - 8);
+                // wood planks
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < W; x += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, ROPE_PIVOT_Y - 8);
+                    ctx.stroke();
+                }
+                // wood grain highlight
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.05)';
+                for (let x = 30; x < W; x += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 4);
+                    ctx.lineTo(x, ROPE_PIVOT_Y - 12);
+                    ctx.stroke();
+                }
+
+                // Surface edge (darker line)
+                ctx.fillStyle = '#5a3820';
+                ctx.fillRect(0, ROPE_PIVOT_Y - 8, W, 4);
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, ROPE_PIVOT_Y - 4, W, 4);
+
+                // Stone texture: small pebbles scattered deterministically
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.03)';
+                for (let i = 0; i < 80; i++) {
+                    const px = (i * 137) % W;
+                    const py = ROPE_PIVOT_Y + 20 + ((i * 271) % (H - ROPE_PIVOT_Y - 40));
+                    ctx.fillRect(px, py, 2, 2);
+                }
+
+                // Subtle cavern vignette
+                const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.7);
+                vg.addColorStop(0, 'rgba(0,0,0,0)');
+                vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+                ctx.fillStyle = vg;
+                ctx.fillRect(0, 0, W, H);
+
+                // Side walls: darker stripes
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                ctx.fillRect(0, ROPE_PIVOT_Y, 12, H);
+                ctx.fillRect(W - 12, ROPE_PIVOT_Y, 12, H);
+            },
+
+            // === Items ===
+            drawItems() {
+                const now = performance.now();
+                for (const it of this.items) {
+                    if (it.caught && this.hook.state !== 'RETRACTING' && this.hook.state !== 'CAUGHT') continue;
+                    const def = ITEM_TYPES[it.type];
+                    const wobble = Math.sin(now * 0.003 + it.phase) * 1.5;
+                    this.drawItem(it, wobble);
+                }
+            },
+
+            drawItem(it, wobble) {
+                const def = ITEM_TYPES[it.type];
+                const x = it.x, y = it.y + (wobble || 0), r = it.r;
+                ctx.save();
+                ctx.translate(x, y);
+
+                // soft glow
+                ctx.shadowColor = def.color;
+                ctx.shadowBlur = 14;
+
+                if (it.type === 'gold_big' || it.type === 'gold_small') {
+                    this.drawGold(r, def);
+                } else if (it.type === 'diamond') {
+                    this.drawDiamond(r, def);
+                } else if (it.type === 'rock_big' || it.type === 'rock_small') {
+                    this.drawRock(r, def, it.seed);
+                } else if (it.type === 'bag') {
+                    this.drawBag(r, def);
+                }
+
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            },
+
+            drawGold(r, def) {
+                // Chunky faceted nugget: irregular polygon + highlight
+                const points = 7;
+                ctx.beginPath();
+                for (let i = 0; i < points; i++) {
+                    const a = (i / points) * Math.PI * 2;
+                    const rr = r * (0.85 + ((i * 31) % 7) / 25);
+                    const px = Math.cos(a) * rr;
+                    const py = Math.sin(a) * rr;
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
+                grad.addColorStop(0, '#fff3a0');
+                grad.addColorStop(0.6, def.color);
+                grad.addColorStop(1, '#c79a00');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                // outline
+                ctx.strokeStyle = '#7a5a00';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                // shine
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+                ctx.beginPath();
+                ctx.ellipse(-r * 0.35, -r * 0.4, r * 0.18, r * 0.1, -0.4, 0, Math.PI * 2);
+                ctx.fill();
+            },
+
+            drawDiamond(r, def) {
+                // Diamond shape (top-down rhombus)
+                ctx.beginPath();
+                ctx.moveTo(0, -r);
+                ctx.lineTo(r * 0.9, -r * 0.15);
+                ctx.lineTo(r * 0.55, r);
+                ctx.lineTo(-r * 0.55, r);
+                ctx.lineTo(-r * 0.9, -r * 0.15);
+                ctx.closePath();
+                const grad = ctx.createLinearGradient(-r, -r, r, r);
+                grad.addColorStop(0, '#e6ffff');
+                grad.addColorStop(0.4, def.color);
+                grad.addColorStop(1, '#0078a0');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.strokeStyle = '#003a55';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                // facet lines
+                ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, -r); ctx.lineTo(0, r);
+                ctx.moveTo(-r * 0.9, -r * 0.15); ctx.lineTo(r * 0.9, -r * 0.15);
+                ctx.stroke();
+                // sparkle
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(-r * 0.25, -r * 0.45, r * 0.13, 0, Math.PI * 2);
+                ctx.fill();
+            },
+
+            drawRock(r, def, seed) {
+                // Irregular polygon based on seed
+                ctx.beginPath();
+                const pts = 8;
+                for (let i = 0; i < pts; i++) {
+                    const a = (i / pts) * Math.PI * 2;
+                    const wobble = 0.75 + (((seed + i * 17) % 11) / 30);
+                    const rr = r * wobble;
+                    const px = Math.cos(a) * rr;
+                    const py = Math.sin(a) * rr;
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
+                grad.addColorStop(0, def.accent);
+                grad.addColorStop(0.6, def.color);
+                grad.addColorStop(1, '#3a3a3a');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                // cracks
+                ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.4, -r * 0.1);
+                ctx.lineTo(r * 0.2, r * 0.3);
+                ctx.stroke();
+            },
+
+            drawBag(r, def) {
+                // Bag body (rounded rectangle-ish)
+                ctx.beginPath();
+                ctx.ellipse(0, r * 0.15, r * 0.9, r, 0, 0, Math.PI * 2);
+                const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.2, r * 0.1, 0, 0, r * 1.2);
+                grad.addColorStop(0, def.accent);
+                grad.addColorStop(0.6, def.color);
+                grad.addColorStop(1, '#5a2d0c');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.strokeStyle = '#3a1c08';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                // Tie at top
+                ctx.fillStyle = '#3a1c08';
+                ctx.fillRect(-r * 0.45, -r * 0.95, r * 0.9, r * 0.25);
+                // Rope around tie
+                ctx.strokeStyle = '#d9a064';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.5, -r * 0.85);
+                ctx.lineTo(r * 0.5, -r * 0.85);
+                ctx.stroke();
+                // $ mark
+                ctx.fillStyle = '#ffd700';
+                ctx.font = `bold ${Math.floor(r * 0.9)}px "Russo One", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 8;
+                ctx.fillText('?', 0, r * 0.2);
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+            },
+
+            // === Miner & Hook ===
+            drawMinerAndHook() {
+                const h = this.hook;
+                // Anchor point: just below miner body
+                const ax = MINER_X;
+                const ay = ROPE_PIVOT_Y;
+
+                // === Rope + Claw ===
+                const tipX = this.hookTipX;
+                const tipY = this.hookTipY;
+
+                // Rope (chain-like with dashes)
+                ctx.save();
+                ctx.strokeStyle = '#d9d9d9';
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([4, 3]);
+                ctx.beginPath();
+                ctx.moveTo(ax, ay);
+                ctx.lineTo(tipX, tipY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.restore();
+
+                // Hook/claw graphic at tip
+                ctx.save();
+                ctx.translate(tipX, tipY);
+                ctx.rotate(h.angle);
+                // orientation: 0 = pointing down
+                this.drawClaw();
+                ctx.restore();
+
+                // === Miner body on top ===
+                this.drawMiner();
+            },
+
+            drawClaw() {
+                // V-shaped metallic claw pointing downward (+y)
+                ctx.fillStyle = '#666';
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.lineWidth = 1.5;
+
+                // central stem
+                ctx.beginPath();
+                ctx.moveTo(-3, -4);
+                ctx.lineTo(3, -4);
+                ctx.lineTo(2, 4);
+                ctx.lineTo(-2, 4);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // left prong
+                ctx.beginPath();
+                ctx.moveTo(-3, 0);
+                ctx.lineTo(-9, 8);
+                ctx.lineTo(-7, 12);
+                ctx.lineTo(-2, 6);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // right prong
+                ctx.beginPath();
+                ctx.moveTo(3, 0);
+                ctx.lineTo(9, 8);
+                ctx.lineTo(7, 12);
+                ctx.lineTo(2, 6);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // metallic highlight
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-1, -2);
+                ctx.lineTo(-1, 3);
+                ctx.stroke();
+            },
+
+            drawMiner() {
+                // A cartoon miner at top center, hanging from the surface
+                const x = MINER_X, y = MINER_Y;
+                ctx.save();
+                ctx.translate(x, y);
+
+                // Body (overalls)
+                ctx.fillStyle = '#3a5a8a'; // blue overalls
+                ctx.beginPath();
+                ctx.roundRect ? ctx.roundRect(-14, -2, 28, 26, 4) : ctx.rect(-14, -2, 28, 26);
+                ctx.fill();
+                ctx.strokeStyle = '#1f3552';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Strap details
+                ctx.strokeStyle = '#1f3552';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-8, 0); ctx.lineTo(-6, 12);
+                ctx.moveTo(8, 0); ctx.lineTo(6, 12);
+                ctx.stroke();
+
+                // Belt buckle (gold)
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(-3, 16, 6, 3);
+
+                // Head
+                ctx.fillStyle = '#e0b48a';
+                ctx.beginPath();
+                ctx.arc(0, -10, 9, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#7a5a3a';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Mustache
+                ctx.fillStyle = '#3a2410';
+                ctx.fillRect(-5, -6, 10, 2);
+
+                // Eyes (dots)
+                ctx.fillStyle = '#1a0f08';
+                ctx.fillRect(-4, -12, 2, 2);
+                ctx.fillRect(2, -12, 2, 2);
+
+                // Hard hat (yellow)
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(0, -14, 11, Math.PI, 0);
+                ctx.lineTo(11, -13);
+                ctx.lineTo(-11, -13);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#7a5a00';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Hat brim
+                ctx.fillStyle = '#e6b800';
+                ctx.fillRect(-13, -13, 26, 3);
+
+                // Headlamp
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(-3, -22, 6, 4);
+                ctx.fillStyle = 'rgba(255, 255, 200, 0.8)';
+                ctx.beginPath();
+                ctx.arc(0, -20, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Lamp light cone (faint)
+                if (this.hook.state === 'LAUNCHING' || this.hook.state === 'RETRACTING') {
+                    const grad = ctx.createRadialGradient(0, -20, 2, 0, 60, 80);
+                    grad.addColorStop(0, 'rgba(255, 255, 200, 0.25)');
+                    grad.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -18);
+                    ctx.lineTo(-40, 80);
+                    ctx.lineTo(40, 80);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Arms holding rope
+                ctx.strokeStyle = '#3a5a8a';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-6, 6); ctx.lineTo(0, 18);
+                ctx.moveTo(6, 6); ctx.lineTo(0, 18);
+                ctx.stroke();
+                ctx.lineCap = 'butt';
+
+                ctx.restore();
+            },
+
+            // === Floating "+N" texts ===
+            drawFloats() {
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                for (const f of this.floats) {
+                    const a = clamp(f.life / f.maxLife, 0, 1);
+                    ctx.globalAlpha = a;
+                    ctx.font = 'bold 26px "Russo One", sans-serif';
+                    ctx.fillStyle = f.color;
+                    ctx.shadowColor = f.color;
+                    ctx.shadowBlur = 12;
+                    ctx.fillText(f.text, f.x, f.y);
+                }
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+                ctx.restore();
+            },
+
+            // === Overlays ===
+            drawOverlay(title, sub, color) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+                ctx.fillRect(0, 0, W, H);
+                // gold border accent
+                ctx.strokeStyle = color || '#ffd700';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(W / 2 - 280, H / 2 - 90, 560, 180);
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = color || '#ffd700';
+                ctx.shadowColor = color || '#ffd700';
+                ctx.shadowBlur = 16;
+                ctx.font = 'bold 44px "Russo One", sans-serif';
+                ctx.fillText(title, W / 2, H / 2 - 25);
+
+                ctx.shadowBlur = 6;
+                ctx.font = '14px "Share Tech Mono", monospace';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(sub, W / 2, H / 2 + 30);
+                ctx.restore();
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+            }
+        };
+
+        // Init legend now that ITEM_TYPES exists
+        renderLegend();
+        // Re-render legend on language change so names localize
+        const _origApply = i18n.apply.bind(i18n);
+        i18n.apply = function () { _origApply(); renderLegend(); game.updateHud(); };
+
+        // Start loop
+        loop.start(
+            (dt) => game.update(dt),
+            () => game.draw()
+        );
+
+        // Initial HUD refresh
+        game.updateHud();
+    </script>
+</body>
+</html>

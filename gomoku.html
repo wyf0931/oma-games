@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOMOKU — 五子棋</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            /* Gomoku wood palette (light) */
+            --wood-light: #dcb35c;
+            --wood-light-2: #cda048;
+            --wood-line: #3a2f1a;
+            --wood-text: #2a1f0a;
+
+            /* Page tokens */
+            --bg-primary: #f5ecd7;
+            --bg-secondary: #ebe0c4;
+            --bg-card: #fffaf0;
+            --text-primary: var(--wood-text);
+            --text-secondary: #6b5836;
+            --text-dim: #a08d62;
+            --border: #c9b88b;
+            --border-strong: #8a7545;
+            --accent: #8a5a2b;
+            --accent-strong: #6e4520;
+            --accent-contrast: #fffaf0;
+            --danger: #c0392b;
+            --gold: #d4af37;
+        }
+
+        [data-theme='dark'] {
+            --wood-light: #3a2f1a;
+            --wood-light-2: #2a2113;
+            --wood-line: #dcb35c;
+            --wood-text: #f5ecd7;
+
+            --bg-primary: #14100a;
+            --bg-secondary: #1f1812;
+            --bg-card: #2a2118;
+            --text-primary: #f5ecd7;
+            --text-secondary: #b5a079;
+            --text-dim: #7a6a48;
+            --border: #3a2f1a;
+            --border-strong: #5a4528;
+            --accent: #dcb35c;
+            --accent-strong: #c79c45;
+            --accent-contrast: #14100a;
+            --danger: #e74c3c;
+            --gold: #f0c850;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 80px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Subtle paper / wood-grain backdrop */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 30% 0%, rgba(220, 179, 92, 0.10), transparent 60%),
+                radial-gradient(ellipse at 100% 100%, rgba(138, 90, 43, 0.08), transparent 50%);
+        }
+
+        [data-theme='dark'] body::before {
+            background:
+                radial-gradient(ellipse at 30% 0%, rgba(220, 179, 92, 0.05), transparent 60%),
+                radial-gradient(ellipse at 100% 100%, rgba(220, 179, 92, 0.03), transparent 50%);
+        }
+
+        #app {
+            display: flex;
+            gap: 28px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* === Game panel === */
+        .game-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.08),
+                0 10px 30px rgba(58, 47, 26, 0.12);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            font-size: 13px;
+        }
+
+        .hud-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .hud-value {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stone-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            vertical-align: middle;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        }
+
+        .stone-dot.black {
+            background: radial-gradient(circle at 35% 30%, #4a4a4a, #000 70%);
+        }
+        .stone-dot.white {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #c8c8c8 75%);
+            border: 1px solid #888;
+        }
+
+        .turn-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Canvas */
+        #board-canvas {
+            display: block;
+            background: var(--wood-light);
+            border: 1px solid var(--wood-line);
+            border-radius: 4px;
+            cursor: crosshair;
+            box-shadow:
+                inset 0 0 40px rgba(58, 47, 26, 0.15),
+                0 4px 14px rgba(58, 47, 26, 0.20);
+            touch-action: none;
+        }
+
+        [data-theme='dark'] #board-canvas {
+            box-shadow:
+                inset 0 0 40px rgba(0, 0, 0, 0.5),
+                0 4px 14px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Status line below board */
+        #status-line {
+            text-align: center;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 16px;
+            color: var(--text-secondary);
+            min-height: 24px;
+            padding: 4px 0;
+            letter-spacing: 1px;
+        }
+
+        #status-line.win {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* === Config panel === */
+        .config-panel {
+            width: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 22px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--text-primary);
+            letter-spacing: 4px;
+            text-align: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-subtitle {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: -12px;
+            margin-bottom: 4px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .seg-group {
+            display: flex;
+            border: 1px solid var(--border-strong);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .seg-btn {
+            flex: 1;
+            padding: 10px 0;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            border: none;
+            border-right: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .seg-btn:last-child { border-right: none; }
+
+        .seg-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .seg-btn.active {
+            background: var(--accent);
+            color: var(--accent-contrast);
+            font-weight: 600;
+        }
+
+        .seg-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--accent);
+            color: var(--accent-contrast);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-strong);
+            border-color: var(--accent-strong);
+        }
+        .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+
+        .btn-secondary {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Score board */
+        .score-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+        .score-cell {
+            text-align: center;
+        }
+        .score-cell .lbl {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .score-cell .val {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Controls help */
+        .controls-help {
+            font-size: 11px;
+            line-height: 1.9;
+            color: var(--text-dim);
+            padding-top: 14px;
+            border-top: 1px dashed var(--border);
+            text-align: left;
+        }
+
+        .controls-help .row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .oma-key {
+            background: var(--bg-secondary);
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+        }
+
+        /* Toast (for draw / info) */
+        .toast {
+            position: fixed;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-12px);
+            padding: 10px 22px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-primary);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 200;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* === Game header overrides (wood theme) === */
+        :root {
+            --oma-header-bg: rgba(220, 179, 92, 0.88);
+            --oma-header-fg: var(--wood-text);
+            --oma-header-hover-bg: var(--wood-line);
+            --oma-header-hover-fg: var(--wood-light);
+            --oma-header-border: rgba(58, 47, 26, 0.45);
+            --oma-header-glow: transparent;
+        }
+        [data-theme='dark'] {
+            --oma-header-bg: rgba(58, 47, 26, 0.88);
+            --oma-header-fg: var(--wood-light);
+            --oma-header-hover-bg: var(--wood-light);
+            --oma-header-hover-fg: var(--wood-line);
+            --oma-header-border: rgba(220, 179, 92, 0.4);
+        }
+        .oma-game-header {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; align-items: center; }
+            .config-panel { width: 100%; max-width: 640px; }
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 70px 8px 30px; }
+            #board-canvas { width: 100%; height: auto; }
+        }
+
+        @keyframes pulse-win {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="game-panel">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="turn">回合</span>
+                    <span class="turn-indicator">
+                        <span class="stone-dot black" id="turn-stone"></span>
+                        <span class="hud-value" id="turn-text">黑棋</span>
+                    </span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="moves">步数</span>
+                    <span class="hud-value" id="moves-text">0</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="mode_label">模式</span>
+                    <span class="hud-value" id="mode-text">人机</span>
+                </div>
+            </div>
+
+            <canvas id="board-canvas" width="640" height="640"></canvas>
+
+            <div id="status-line" data-i18n="status_ready">点击棋盘开始对局</div>
+        </div>
+
+        <div class="config-panel">
+            <div>
+                <div class="panel-title">五子棋</div>
+                <div class="panel-subtitle" data-i18n="subtitle">GOMOKU · 15×15</div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-label" data-i18n="mode">模式</div>
+                <div class="seg-group" id="mode-group">
+                    <button class="seg-btn active" data-mode="ai" data-i18n="mode_ai">人机</button>
+                    <button class="seg-btn" data-mode="pvp" data-i18n="mode_pvp">双人</button>
+                </div>
+            </div>
+
+            <div class="field-group" id="difficulty-field">
+                <div class="field-label" data-i18n="difficulty">难度</div>
+                <div class="seg-group oma-diff-group" id="diff-group">
+                    <button class="seg-btn oma-diff-btn active" data-level="beginner">初级</button>
+                    <button class="seg-btn oma-diff-btn" data-level="intermediate">中级</button>
+                    <button class="seg-btn oma-diff-btn" data-level="advanced">高级</button>
+                </div>
+            </div>
+
+            <div class="field-group" id="side-field">
+                <div class="field-label" data-i18n="side">执子</div>
+                <div class="seg-group" id="side-group">
+                    <button class="seg-btn active" data-side="black" data-i18n="side_black">黑（先）</button>
+                    <button class="seg-btn" data-side="white" data-i18n="side_white">白（后）</button>
+                </div>
+            </div>
+
+            <div class="score-board">
+                <div class="score-cell">
+                    <div class="lbl"><span class="stone-dot black"></span> <span data-i18n="black">黑</span></div>
+                    <div class="val" id="score-black">0</div>
+                </div>
+                <div class="score-cell">
+                    <div class="lbl"><span class="stone-dot white"></span> <span data-i18n="white">白</span></div>
+                    <div class="val" id="score-white">0</div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-primary" id="btn-start" data-i18n="start">开始</button>
+                <button class="btn-secondary" id="btn-reset" data-i18n="reset">重置</button>
+            </div>
+
+            <div class="controls-help">
+                <div class="row">
+                    <span class="oma-key">CLICK</span>
+                    <span data-i18n="help_click">点击交叉点落子</span>
+                </div>
+                <div class="row">
+                    <span class="oma-key">R</span>
+                    <span data-i18n="help_r">重新开局</span>
+                </div>
+                <div class="row">
+                    <span class="oma-key">U</span>
+                    <span data-i18n="help_u">悔棋一步（双人模式）</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+    'use strict';
+
+    const { i18n, theme, fsm, DIFFICULTY, clamp } = OmaGames;
+
+    // ===== i18n =====
+    i18n.load({
+        zh: {
+            turn: '回合',
+            moves: '步数',
+            mode_label: '模式',
+            status_ready: '点击棋盘开始对局',
+            status_your_turn: '你的回合',
+            status_ai_thinking: '电脑思考中…',
+            status_black_win: '黑棋获胜！',
+            status_white_win: '白棋获胜！',
+            status_draw: '和棋（棋盘已满）',
+            subtitle: 'GOMOKU · 15×15',
+            mode: '模式',
+            mode_ai: '人机',
+            mode_pvp: '双人',
+            difficulty: '难度',
+            side: '执子',
+            side_black: '黑（先）',
+            side_white: '白（后）',
+            black: '黑',
+            white: '白',
+            start: '开始',
+            reset: '重置',
+            help_click: '点击交叉点落子',
+            help_r: '重新开局',
+            help_u: '悔棋一步（双人模式）',
+            turn_black: '黑棋',
+            turn_white: '白棋',
+            toast_undo_disabled: '人机模式不支持悔棋',
+            toast_no_move: '尚无可悔之子',
+            toast_first_move: '请先开局'
+        },
+        en: {
+            turn: 'Turn',
+            moves: 'Moves',
+            mode_label: 'Mode',
+            status_ready: 'Click the board to begin',
+            status_your_turn: 'Your turn',
+            status_ai_thinking: 'AI is thinking…',
+            status_black_win: 'Black wins!',
+            status_white_win: 'White wins!',
+            status_draw: 'Draw (board full)',
+            subtitle: 'GOMOKU · 15×15',
+            mode: 'Mode',
+            mode_ai: 'vs AI',
+            mode_pvp: '2 Players',
+            difficulty: 'Difficulty',
+            side: 'Side',
+            side_black: 'Black (1st)',
+            side_white: 'White (2nd)',
+            black: 'Black',
+            white: 'White',
+            start: 'Start',
+            reset: 'Reset',
+            help_click: 'Click an intersection to place',
+            help_r: 'Restart game',
+            help_u: 'Undo one move (PvP only)',
+            turn_black: 'Black',
+            turn_white: 'White',
+            toast_undo_disabled: 'Undo not allowed vs AI',
+            toast_no_move: 'Nothing to undo',
+            toast_first_move: 'Start the game first'
+        }
+    });
+    theme.init();
+
+    // Force light theme by default? Spec lets us decide. Wood board looks
+    // best in light, but repo convention is dark — respect saved pref, default dark.
+    if (!localStorage.getItem('oma_games_theme')) {
+        theme.set('dark');
+    }
+
+    OmaGames.ui.header();
+
+    // ===== Constants =====
+    const BOARD_SIZE = 15;
+    const EMPTY = 0;
+    const BLACK = 1;
+    const WHITE = 2;
+
+    const canvas = document.getElementById('board-canvas');
+    const ctx = canvas.getContext('2d');
+    const CANVAS_SIZE = canvas.width;     // 640
+    const PADDING = 32;                    // px from edge to first line
+    const GRID_SIZE = (CANVAS_SIZE - PADDING * 2) / (BOARD_SIZE - 1); // 40.5...
+    const STONE_RADIUS = GRID_SIZE * 0.42;
+
+    // ===== FSM =====
+    const machine = fsm({
+        MENU:     { start: 'PLAYING', place: 'PLAYING' },
+        PLAYING:  { win: 'WIN', draw: 'DRAW', reset: 'MENU', menu: 'MENU' },
+        WIN:      { reset: 'MENU', start: 'PLAYING' },
+        DRAW:     { reset: 'MENU', start: 'PLAYING' }
+    }, 'MENU');
+
+    // ===== Game state =====
+    const game = {
+        board: [],            // 15x15 of EMPTY/BLACK/WHITE
+        current: BLACK,       // whose turn
+        moves: 0,             // total stones placed
+        lastMove: null,       // {r, c}
+        winLine: null,        // array of {r,c} when someone wins
+        history: [],          // for undo: stack of {r,c,color}
+        aiSide: WHITE,        // color AI plays (when mode=ai)
+        mode: 'ai',           // 'ai' | 'pvp'
+        difficulty: 'beginner',
+        playerSide: BLACK,    // color human plays in AI mode
+        score: { black: 0, white: 0 },
+        hoverCell: null,      // {r,c} for preview
+        aiThinking: false
+    };
+
+    function resetBoard() {
+        game.board = [];
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            const row = [];
+            for (let c = 0; c < BOARD_SIZE; c++) row.push(EMPTY);
+            game.board.push(row);
+        }
+        game.current = BLACK;
+        game.moves = 0;
+        game.lastMove = null;
+        game.winLine = null;
+        game.history = [];
+        game.aiThinking = false;
+        game.hoverCell = null;
+    }
+
+    // ===== Coordinate helpers =====
+    function cellToPixel(r, c) {
+        return {
+            x: PADDING + c * GRID_SIZE,
+            y: PADDING + r * GRID_SIZE
+        };
+    }
+
+    function pixelToCell(x, y) {
+        const c = Math.round((x - PADDING) / GRID_SIZE);
+        const r = Math.round((y - PADDING) / GRID_SIZE);
+        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) return null;
+        // Require click reasonably close to intersection
+        const p = cellToPixel(r, c);
+        const dx = x - p.x, dy = y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) > GRID_SIZE * 0.6) return null;
+        return { r, c };
+    }
+
+    // ===== Win detection: 4 direction pairs =====
+    const DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+    function inBounds(r, c) {
+        return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE;
+    }
+
+    /**
+     * Check if placing `color` at (r,c) results in 5-in-a-row.
+     * Returns the winning line as [{r,c}, ...] (length >= 5) or null.
+     */
+    function checkWin(board, r, c, color) {
+        for (const [dr, dc] of DIRECTIONS) {
+            const line = [{ r, c }];
+            // forward
+            for (let i = 1; i < 5; i++) {
+                const nr = r + dr * i, nc = c + dc * i;
+                if (!inBounds(nr, nc) || board[nr][nc] !== color) break;
+                line.push({ r: nr, c: nc });
+            }
+            // backward
+            for (let i = 1; i < 5; i++) {
+                const nr = r - dr * i, nc = c - dc * i;
+                if (!inBounds(nr, nc) || board[nr][nc] !== color) break;
+                line.unshift({ r: nr, c: nc });
+            }
+            if (line.length >= 5) return line;
+        }
+        return null;
+    }
+
+    function isBoardFull(board) {
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (board[r][c] === EMPTY) return false;
+            }
+        }
+        return true;
+    }
+
+    // ===== Pattern evaluation =====
+    // We score an empty cell by scanning the 8 rays around it for each color,
+    // counting consecutive same-color stones with end-closure info.
+    //
+    // For each direction we build a small pattern string of length up to 4 on
+    // each side, then match against known high-value shapes.
+
+    // Returns a numeric score representing "how good it is for `color` to have
+    // a stone at (r,c)", given the current board (cell at r,c is EMPTY).
+    function evaluatePoint(board, r, c, color) {
+        if (board[r][c] !== EMPTY) return 0;
+
+        let total = 0;
+        for (const [dr, dc] of DIRECTIONS) {
+            total += scoreDirection(board, r, c, dr, dc, color);
+        }
+        return total;
+    }
+
+    // Build a 9-char window centered on the empty cell, then pattern-match.
+    // Char codes: '1' = same color, '0' = empty, 'x' = blocked (off-board or opp).
+    function scoreDirection(board, r, c, dr, dc, color) {
+        let s = '';
+        for (let i = -4; i <= 4; i++) {
+            if (i === 0) { s += '1'; continue; } // hypothetical stone
+            const nr = r + dr * i, nc = c + dc * i;
+            if (!inBounds(nr, nc)) s += 'x';
+            else if (board[nr][nc] === color) s += '1';
+            else if (board[nr][nc] === EMPTY) s += '0';
+            else s += 'x';
+        }
+        return patternScore(s);
+    }
+
+    // Score a 9-char pattern. Higher = stronger shape.
+    // Patterns roughly ordered by importance. We scan for the strongest match.
+    function patternScore(s) {
+        // Win
+        if (s.includes('11111')) return 100000;
+
+        // Open four _XXXX_  → forces win next move
+        if (s.includes('011110')) return 10000;
+
+        // Four (one side blocked) — also forces a block/response
+        // OXXXX_ or _XXXXO  → "simple four" / "broken four"
+        if (/x111110|011111x|111110|011111/.test(s)) return 1000;
+        // Broken fours: X11X11X type → still 4 threat
+        if (/11011|10111|11101/.test(s)) return 1000;
+
+        // Open three _XXX_ → can become open four
+        if (/011100|001110/.test(s)) return 500;
+        // Broken open three: _XX_X_ or _X_XX_
+        if (/011010|010110/.test(s)) return 400;
+
+        // Closed three (one side blocked)
+        if (/x11100|00111x|x11010|01011x|x10110|01101x/.test(s)) return 100;
+
+        // Open two
+        if (/001100|010100|001010|010010/.test(s)) return 50;
+
+        // Closed two
+        if (/x1100|0011x|x1010|0101x/.test(s)) return 10;
+
+        return 0;
+    }
+
+    // ===== AI: greedy + minimax =====
+
+    // Find all empty cells within `radius` of any existing stone (or center if empty board).
+    function candidateMoves(board, radius = 2) {
+        const candidates = [];
+        let hasStone = false;
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (board[r][c] !== EMPTY) { hasStone = true; break; }
+            }
+            if (hasStone) break;
+        }
+        if (!hasStone) {
+            // Opening move: center
+            return [{ r: 7, c: 7 }];
+        }
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (board[r][c] !== EMPTY) continue;
+                // Check neighborhood
+                let near = false;
+                for (let dr = -radius; dr <= radius && !near; dr++) {
+                    for (let dc = -radius; dc <= radius && !near; dc++) {
+                        const nr = r + dr, nc = c + dc;
+                        if (inBounds(nr, nc) && board[nr][nc] !== EMPTY) near = true;
+                    }
+                }
+                if (near) candidates.push({ r, c });
+            }
+        }
+        return candidates;
+    }
+
+    function aiGreedy(board, aiColor, defenseWeight) {
+        const oppColor = aiColor === BLACK ? WHITE : BLACK;
+        const candidates = candidateMoves(board, 2);
+        let best = { score: -Infinity, r: 7, c: 7 };
+
+        for (const { r, c } of candidates) {
+            const offense = evaluatePoint(board, r, c, aiColor);
+            const defense = evaluatePoint(board, r, c, oppColor);
+            const score = offense + defense * defenseWeight;
+            if (score > best.score) best = { score, r, c };
+        }
+        return { r: best.r, c: best.c };
+    }
+
+    // Minimax with alpha-beta, depth-limited. Uses evaluatePoint as leaf heuristic.
+    function aiMinimax(board, aiColor, maxDepth) {
+        const oppColor = aiColor === BLACK ? WHITE : BLACK;
+
+        function cloneBoard(b) {
+            return b.map(row => row.slice());
+        }
+
+        function alphabeta(b, depth, alpha, beta, maximizing) {
+            // Terminal check: any 5-in-a-row from last hypothetical move?
+            // For simplicity, we use the heuristic at depth 0.
+            if (depth === 0) {
+                // Evaluate whole board from AI's perspective using sum of best
+                // threats — approximate. We just use 0 here and let the move
+                // loop's evaluatePoint drive selection.
+                return 0;
+            }
+            const candidates = candidateMoves(b, 1).slice(0, 12); // limit branching
+            if (candidates.length === 0) return 0;
+            const color = maximizing ? aiColor : oppColor;
+
+            if (maximizing) {
+                let value = -Infinity;
+                for (const { r, c } of candidates) {
+                    // Immediate win check
+                    b[r][c] = color;
+                    let win = checkWin(b, r, c, color);
+                    if (win) {
+                        b[r][c] = EMPTY;
+                        return 100000 - (maxDepth - depth); // prefer faster wins
+                    }
+                    const childVal = alphabeta(b, depth - 1, alpha, beta, false);
+                    b[r][c] = EMPTY;
+                    value = Math.max(value, childVal);
+                    alpha = Math.max(alpha, value);
+                    if (alpha >= beta) break;
+                }
+                return value;
+            } else {
+                let value = Infinity;
+                for (const { r, c } of candidates) {
+                    b[r][c] = color;
+                    let win = checkWin(b, r, c, color);
+                    if (win) {
+                        b[r][c] = EMPTY;
+                        return -100000 + (maxDepth - depth);
+                    }
+                    const childVal = alphabeta(b, depth - 1, alpha, beta, true);
+                    b[r][c] = EMPTY;
+                    value = Math.min(value, childVal);
+                    b[r][c] = EMPTY;
+                    beta = Math.min(beta, value);
+                    if (alpha >= beta) break;
+                }
+                return value;
+            }
+        }
+
+        const candidates = candidateMoves(board, 2);
+        let best = { score: -Infinity, r: 7, c: 7 };
+        for (const { r, c } of candidates) {
+            // Immediate win shortcut
+            board[r][c] = aiColor;
+            if (checkWin(board, r, c, aiColor)) {
+                board[r][c] = EMPTY;
+                return { r, c };
+            }
+            // Immediate block: if opp would win here, must block
+            board[r][c] = oppColor;
+            const oppWouldWin = checkWin(board, r, c, oppColor);
+            board[r][c] = EMPTY;
+            if (oppWouldWin) {
+                // Strong incentive but keep scanning — another spot might be our own win
+                const score = 90000;
+                if (score > best.score) best = { score, r, c };
+                continue;
+            }
+
+            board[r][c] = aiColor;
+            const offense = evaluatePoint(board, r, c, aiColor);
+            const defense = evaluatePoint(board, r, c, oppColor);
+            // Hybrid: combine greedy heuristic + minimax lookahead
+            const lookahead = alphabeta(board, maxDepth - 1, -Infinity, Infinity, false);
+            board[r][c] = EMPTY;
+            const score = offense + defense * 0.9 + lookahead;
+            if (score > best.score) best = { score, r, c };
+        }
+        return { r: best.r, c: best.c };
+    }
+
+    function aiPickMove() {
+        const diff = game.difficulty;
+        if (diff === 'beginner') {
+            // Greedy, slightly prefers offense, weak defense
+            return aiGreedy(game.board, game.aiSide, 0.6);
+        } else if (diff === 'intermediate') {
+            return aiGreedy(game.board, game.aiSide, 0.95);
+        } else {
+            // Advanced: minimax depth 2
+            return aiMinimax(game.board, game.aiSide, 2);
+        }
+    }
+
+    // ===== Rendering =====
+    function drawBoard() {
+        const W = CANVAS_SIZE;
+        const isDark = theme.current === 'dark';
+        const woodColor = isDark ? '#3a2f1a' : '#dcb35c';
+        const woodColor2 = isDark ? '#2a2113' : '#cda048';
+        const lineColor = isDark ? '#dcb35c' : '#3a2f1a';
+        const textColor = isDark ? '#dcb35c' : '#3a2f1a';
+
+        // Wood background with subtle vertical gradient
+        const grad = ctx.createLinearGradient(0, 0, W, W);
+        grad.addColorStop(0, woodColor);
+        grad.addColorStop(1, woodColor2);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, W);
+
+        // Faint wood grain stripes
+        ctx.save();
+        ctx.globalAlpha = 0.06;
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 30; i++) {
+            const x = Math.random() * W;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.bezierCurveTo(x + 20, W / 3, x - 20, 2 * W / 3, x, W);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Grid lines
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            const p = PADDING + i * GRID_SIZE;
+            // Horizontal
+            ctx.moveTo(PADDING, p);
+            ctx.lineTo(PADDING + (BOARD_SIZE - 1) * GRID_SIZE, p);
+            // Vertical
+            ctx.moveTo(p, PADDING);
+            ctx.lineTo(p, PADDING + (BOARD_SIZE - 1) * GRID_SIZE);
+        }
+        ctx.stroke();
+
+        // Outer thick border
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+            PADDING - 0.5,
+            PADDING - 0.5,
+            (BOARD_SIZE - 1) * GRID_SIZE + 1,
+            (BOARD_SIZE - 1) * GRID_SIZE + 1
+        );
+
+        // Star points (天元 + 4 星位)
+        const stars = [
+            [3, 3], [3, 11], [11, 3], [11, 11], [7, 7]
+        ];
+        ctx.fillStyle = lineColor;
+        for (const [r, c] of stars) {
+            const p = cellToPixel(r, c);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Column / row labels (A-O / 1-15) — subtle
+        ctx.fillStyle = textColor;
+        ctx.globalAlpha = 0.5;
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            // Top labels (letters)
+            const letter = String.fromCharCode(65 + i);
+            ctx.fillText(letter, PADDING + i * GRID_SIZE, PADDING / 2);
+            // Left labels (numbers, top=1)
+            ctx.fillText(String(i + 1), PADDING / 2, PADDING + i * GRID_SIZE);
+        }
+        ctx.globalAlpha = 1;
+
+        // Stones
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (game.board[r][c] !== EMPTY) {
+                    drawStone(r, c, game.board[r][c]);
+                }
+            }
+        }
+
+        // Last move marker
+        if (game.lastMove && !game.winLine) {
+            const p = cellToPixel(game.lastMove.r, game.lastMove.c);
+            ctx.fillStyle = '#c0392b';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Win line highlight
+        if (game.winLine && game.winLine.length >= 5) {
+            const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+            ctx.save();
+            ctx.strokeStyle = `rgba(212, 175, 55, ${0.7 + 0.3 * pulse})`;
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = '#d4af37';
+            ctx.shadowBlur = 12;
+            // Connect first to last
+            const first = cellToPixel(game.winLine[0].r, game.winLine[0].c);
+            const last = cellToPixel(
+                game.winLine[game.winLine.length - 1].r,
+                game.winLine[game.winLine.length - 1].c
+            );
+            ctx.beginPath();
+            ctx.moveTo(first.x, first.y);
+            ctx.lineTo(last.x, last.y);
+            ctx.stroke();
+            // Ring each winning stone
+            for (const { r, c } of game.winLine) {
+                const p = cellToPixel(r, c);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, STONE_RADIUS + 4, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // Hover preview
+        if (game.hoverCell
+            && machine.is('PLAYING')
+            && !game.aiThinking
+            && game.board[game.hoverCell.r][game.hoverCell.c] === EMPTY
+            && (game.mode === 'pvp' || game.current === game.playerSide)) {
+            ctx.save();
+            ctx.globalAlpha = 0.45;
+            drawStone(game.hoverCell.r, game.hoverCell.c, game.current);
+            ctx.restore();
+        }
+
+        // Menu overlay
+        if (machine.is('MENU')) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.fillRect(0, 0, W, W);
+            ctx.fillStyle = '#fffaf0';
+            ctx.font = '900 48px "Noto Serif SC", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(i18n.t('subtitle').split('·')[0].trim(), W / 2, W / 2 - 30);
+            ctx.font = '14px Inter, sans-serif';
+            ctx.fillStyle = 'rgba(255, 250, 240, 0.8)';
+            ctx.fillText(i18n.t('status_ready'), W / 2, W / 2 + 20);
+            ctx.restore();
+        }
+    }
+
+    function drawStone(r, c, color) {
+        const p = cellToPixel(r, c);
+        const x = p.x, y = p.y;
+        const radius = STONE_RADIUS;
+
+        // Drop shadow
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 2;
+
+        if (color === BLACK) {
+            const g = ctx.createRadialGradient(
+                x - radius * 0.3, y - radius * 0.3, radius * 0.1,
+                x, y, radius
+            );
+            g.addColorStop(0, '#5a5a5a');
+            g.addColorStop(0.4, '#1a1a1a');
+            g.addColorStop(1, '#000000');
+            ctx.fillStyle = g;
+        } else {
+            const g = ctx.createRadialGradient(
+                x - radius * 0.3, y - radius * 0.3, radius * 0.1,
+                x, y, radius
+            );
+            g.addColorStop(0, '#ffffff');
+            g.addColorStop(0.6, '#f0f0f0');
+            g.addColorStop(1, '#b8b8b8');
+            ctx.fillStyle = g;
+        }
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Highlight glint
+        ctx.save();
+        ctx.fillStyle = color === BLACK
+            ? 'rgba(255, 255, 255, 0.25)'
+            : 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.35, y - radius * 0.35, radius * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Outline for white stones (visible on light wood)
+        if (color === WHITE) {
+            ctx.strokeStyle = 'rgba(120, 120, 120, 0.5)';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+
+    // ===== Move handling =====
+    function placeStone(r, c, color) {
+        if (game.board[r][c] !== EMPTY) return false;
+        game.board[r][c] = color;
+        game.lastMove = { r, c };
+        game.moves++;
+        game.history.push({ r, c, color });
+
+        const winLine = checkWin(game.board, r, c, color);
+        if (winLine) {
+            game.winLine = winLine;
+            machine.transition('win');
+            if (color === BLACK) game.score.black++;
+            else game.score.white++;
+            updateHud();
+            draw();
+            return true;
+        }
+        if (isBoardFull(game.board)) {
+            machine.transition('draw');
+            updateHud();
+            draw();
+            return true;
+        }
+        // Switch turn
+        game.current = (color === BLACK) ? WHITE : BLACK;
+        updateHud();
+        draw();
+        return true;
+    }
+
+    function tryHumanMove(r, c) {
+        if (!machine.is('PLAYING')) {
+            // First click starts the game implicitly
+            machine.transition('start');
+            resetBoard();
+            // If AI plays black, AI opens first
+            if (game.mode === 'ai' && game.aiSide === BLACK) {
+                scheduleAIMove();
+            }
+            updateHud();
+            draw();
+            return;
+        }
+        if (game.aiThinking) return;
+        // In AI mode, only allow click on human's turn
+        if (game.mode === 'ai' && game.current !== game.playerSide) return;
+        if (game.board[r][c] !== EMPTY) return;
+
+        const placedColor = game.current;
+        placeStone(r, c, placedColor);
+
+        // If AI mode and not terminal, schedule AI reply
+        if (machine.is('PLAYING') && game.mode === 'ai' && game.current === game.aiSide) {
+            scheduleAIMove();
+        }
+    }
+
+    function scheduleAIMove() {
+        game.aiThinking = true;
+        updateStatus();
+        // Defer to next tick so UI updates first; simulate tiny think delay
+        setTimeout(() => {
+            if (!machine.is('PLAYING')) {
+                game.aiThinking = false;
+                return;
+            }
+            const move = aiPickMove();
+            game.aiThinking = false;
+            if (!move) { updateStatus(); return; }
+            placeStone(move.r, move.c, game.aiSide);
+        }, 180);
+    }
+
+    // ===== HUD / status updates =====
+    const elTurnStone = document.getElementById('turn-stone');
+    const elTurnText = document.getElementById('turn-text');
+    const elMoves = document.getElementById('moves-text');
+    const elMode = document.getElementById('mode-text');
+    const elStatus = document.getElementById('status-line');
+    const elScoreBlack = document.getElementById('score-black');
+    const elScoreWhite = document.getElementById('score-white');
+
+    function updateHud() {
+        elMoves.textContent = game.moves;
+        elMode.textContent = i18n.t(game.mode === 'ai' ? 'mode_ai' : 'mode_pvp');
+        elScoreBlack.textContent = game.score.black;
+        elScoreWhite.textContent = game.score.white;
+
+        // Turn indicator
+        if (machine.is('MENU')) {
+            elTurnStone.className = 'stone-dot black';
+            elTurnText.textContent = i18n.t('turn_black');
+        } else if (machine.is('PLAYING')) {
+            elTurnStone.className = 'stone-dot ' + (game.current === BLACK ? 'black' : 'white');
+            elTurnText.textContent = i18n.t(game.current === BLACK ? 'turn_black' : 'turn_white');
+        } else {
+            // WIN/DRAW — keep last stone
+            elTurnStone.className = 'stone-dot ' + (game.current === BLACK ? 'white' : 'black');
+            elTurnText.textContent = i18n.t(game.current === BLACK ? 'turn_white' : 'turn_black');
+        }
+        updateStatus();
+    }
+
+    function updateStatus() {
+        elStatus.classList.remove('win');
+        if (machine.is('MENU')) {
+            elStatus.textContent = i18n.t('status_ready');
+        } else if (machine.is('PLAYING')) {
+            if (game.aiThinking) {
+                elStatus.textContent = i18n.t('status_ai_thinking');
+            } else if (game.mode === 'ai' && game.current === game.aiSide) {
+                elStatus.textContent = i18n.t('status_ai_thinking');
+            } else {
+                elStatus.textContent = i18n.t('status_your_turn');
+            }
+        } else if (machine.is('WIN')) {
+            const winner = game.winLine
+                ? game.board[game.winLine[0].r][game.winLine[0].c]
+                : EMPTY;
+            elStatus.textContent = i18n.t(winner === BLACK ? 'status_black_win' : 'status_white_win');
+            elStatus.classList.add('win');
+        } else if (machine.is('DRAW')) {
+            elStatus.textContent = i18n.t('status_draw');
+        }
+    }
+
+    // ===== Event wiring =====
+
+    // Board interaction
+    function canvasPointFromEvent(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!machine.is('PLAYING') || game.aiThinking) {
+            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            return;
+        }
+        if (game.mode === 'ai' && game.current !== game.playerSide) {
+            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            return;
+        }
+        const p = canvasPointFromEvent(e);
+        const cell = pixelToCell(p.x, p.y);
+        if (!cell) {
+            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            return;
+        }
+        if (game.board[cell.r][cell.c] !== EMPTY) {
+            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            return;
+        }
+        if (!game.hoverCell || game.hoverCell.r !== cell.r || game.hoverCell.c !== cell.c) {
+            game.hoverCell = cell;
+            draw();
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        if (game.hoverCell) { game.hoverCell = null; draw(); }
+    });
+
+    canvas.addEventListener('click', (e) => {
+        const p = canvasPointFromEvent(e);
+        const cell = pixelToCell(p.x, p.y);
+        if (!cell) return;
+        tryHumanMove(cell.r, cell.c);
+    });
+
+    // Touch support
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (touch.clientX - rect.left) * scaleX;
+        const y = (touch.clientY - rect.top) * scaleY;
+        const cell = pixelToCell(x, y);
+        if (!cell) return;
+        tryHumanMove(cell.r, cell.c);
+    }, { passive: false });
+
+    // Mode buttons
+    document.querySelectorAll('#mode-group .seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#mode-group .seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            game.mode = btn.dataset.mode;
+            // Show/hide difficulty + side panels
+            const showDiff = game.mode === 'ai';
+            document.getElementById('difficulty-field').style.display = showDiff ? '' : 'none';
+            document.getElementById('side-field').style.display = showDiff ? '' : 'none';
+            // Reset on mode change
+            resetBoard();
+            machine.set('MENU');
+            updateHud();
+            draw();
+        });
+    });
+
+    // Difficulty buttons
+    document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            game.difficulty = btn.dataset.level;
+        });
+    });
+
+    // Side buttons
+    document.querySelectorAll('#side-group .seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#side-group .seg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            game.playerSide = btn.dataset.side === 'black' ? BLACK : WHITE;
+            game.aiSide = game.playerSide === BLACK ? WHITE : BLACK;
+        });
+    });
+
+    // Start / Reset
+    document.getElementById('btn-start').addEventListener('click', () => {
+        startGame();
+    });
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        resetBoard();
+        machine.set('MENU');
+        updateHud();
+        draw();
+        showToast(i18n.t('reset'));
+    });
+
+    function startGame() {
+        resetBoard();
+        machine.set('MENU');
+        machine.transition('start');
+        updateHud();
+        draw();
+        // If AI plays black (first move), let AI open
+        if (game.mode === 'ai' && game.aiSide === BLACK) {
+            scheduleAIMove();
+        }
+    }
+
+    // Keyboard
+    window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'r') {
+            startGame();
+        } else if (key === 'u') {
+            undoMove();
+        } else if (key === 'escape') {
+            resetBoard();
+            machine.set('MENU');
+            updateHud();
+            draw();
+        }
+    });
+
+    function undoMove() {
+        if (machine.is('MENU')) { showToast(i18n.t('toast_first_move')); return; }
+        if (game.mode === 'ai') { showToast(i18n.t('toast_undo_disabled')); return; }
+        if (game.history.length === 0) { showToast(i18n.t('toast_no_move')); return; }
+        const last = game.history.pop();
+        game.board[last.r][last.c] = EMPTY;
+        game.moves--;
+        game.lastMove = game.history.length > 0
+            ? { r: game.history[game.history.length - 1].r, c: game.history[game.history.length - 1].c }
+            : null;
+        game.current = last.color;
+        game.winLine = null;
+        if (machine.is('WIN') || machine.is('DRAW')) machine.set('PLAYING');
+        updateHud();
+        draw();
+    }
+
+    // Toast
+    const toastEl = document.getElementById('toast');
+    let toastTimer = null;
+    function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+    }
+
+    // Re-render on theme/lang change (observed via the header buttons which call theme.toggle / i18n.toggle)
+    // We poll theme.current lightly. Simpler: hook into the toggle buttons after they're created.
+    const observer = new MutationObserver(() => {
+        draw();
+        updateHud();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
+    // ===== Animation loop =====
+    // We only re-render continuously when there's a win-line (for the pulse effect)
+    // or when AI is thinking (for status flicker). Otherwise event-driven.
+    let rafId = null;
+    function animLoop() {
+        draw();
+        rafId = requestAnimationFrame(animLoop);
+    }
+    function startAnim() { if (!rafId) rafId = requestAnimationFrame(animLoop); }
+    function stopAnim() { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
+
+    // Always run a gentle rAF — win pulse + hover fade need it. Cheap on 640x640.
+    startAnim();
+
+    // ===== Init =====
+    resetBoard();
+    updateHud();
+    draw();
+    </script>
+</body>
+</html>
