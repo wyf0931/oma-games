@@ -502,9 +502,9 @@
         const SLING_MAX_RANGE = 110;
         const BIRD_RADIUS = 18;
         const LAUNCH_POWER = 0.22;
-        const NEXT_BIRD_DELAY = 2500;
+        const NEXT_BIRD_DELAY = 800;
         const SETTLE_VELOCITY = 0.5;
-        const SETTLE_TIME = 1500;
+        const SETTLE_TIME = 800;
 
         // ===== Materials =====
         const MATERIALS = {
@@ -905,7 +905,8 @@
             const { x, y } = getMousePos(e);
             const bird = game.currentBird;
             const dist = Math.hypot(x - bird.position.x, y - bird.position.y);
-            if (dist < 40) {
+            // Grab hitbox enlarged from 40 → 60 so users don't need pixel-perfect aim
+            if (dist < 60) {
                 game.dragging = true;
             }
         });
@@ -1008,8 +1009,12 @@
             if (game.pigs.length === 0) {
                 // Level cleared
                 game.score += game.birdsLeft * 1000;
-                showFlash(i18n.t('level_clear').replace('%d', String(game.levelIndex + 1)), 90);
-                if (game.levelIndex + 1 < game.levels.length) {
+                const isLast = game.levelIndex + 1 >= game.levels.length;
+                showFlash(
+                    isLast ? i18n.t('victory') : i18n.t('level_clear').replace('%d', String(game.levelIndex + 1)),
+                    90
+                );
+                if (!isLast) {
                     game.levelIndex++;
                     setTimeout(() => {
                         if (machine.current === 'PLAYING') {
@@ -1018,10 +1023,12 @@
                         }
                     }, 1500);
                 } else {
-                    // All levels cleared
-                    machine.transition('win');
-                    saveBest();
-                    btnStart.disabled = false;
+                    // All levels cleared — delay transition so flash ("VICTORY!") shows cleanly first
+                    setTimeout(() => {
+                        machine.transition('win');
+                        saveBest();
+                        btnStart.disabled = false;
+                    }, 1500);
                 }
             } else if (game.birdsLeft === 0 && !game.currentBird && !game.launched && game.particles.length === 0) {
                 // Lost
