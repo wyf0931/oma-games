@@ -410,19 +410,20 @@
         }
 
         /* === Game header overrides (wood theme) === */
+        /* Use literal colors — in dark mode the --wood-* variable names are inverted */
         :root {
             --oma-header-bg: rgba(220, 179, 92, 0.88);
-            --oma-header-fg: var(--wood-text);
-            --oma-header-hover-bg: var(--wood-line);
-            --oma-header-hover-fg: var(--wood-light);
+            --oma-header-fg: #2a1f0a;
+            --oma-header-hover-bg: #3a2f1a;
+            --oma-header-hover-fg: #dcb35c;
             --oma-header-border: rgba(58, 47, 26, 0.45);
             --oma-header-glow: transparent;
         }
         [data-theme='dark'] {
             --oma-header-bg: rgba(58, 47, 26, 0.88);
-            --oma-header-fg: var(--wood-light);
-            --oma-header-hover-bg: var(--wood-light);
-            --oma-header-hover-fg: var(--wood-line);
+            --oma-header-fg: #dcb35c;
+            --oma-header-hover-bg: #dcb35c;
+            --oma-header-hover-fg: #3a2f1a;
             --oma-header-border: rgba(220, 179, 92, 0.4);
         }
         .oma-game-header {
@@ -957,26 +958,12 @@
         const lineColor = isDark ? '#dcb35c' : '#3a2f1a';
         const textColor = isDark ? '#dcb35c' : '#3a2f1a';
 
-        // Wood background with subtle vertical gradient
+        // Wood background with subtle vertical gradient (no grain stripes — they flicker on re-render)
         const grad = ctx.createLinearGradient(0, 0, W, W);
         grad.addColorStop(0, woodColor);
         grad.addColorStop(1, woodColor2);
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, W, W);
-
-        // Faint wood grain stripes
-        ctx.save();
-        ctx.globalAlpha = 0.06;
-        ctx.strokeStyle = lineColor;
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 30; i++) {
-            const x = Math.random() * W;
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.bezierCurveTo(x + 20, W / 3, x - 20, 2 * W / 3, x, W);
-            ctx.stroke();
-        }
-        ctx.restore();
 
         // Grid lines
         ctx.strokeStyle = lineColor;
