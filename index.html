@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Primary TDK -->
-    <title>OMA GAMES · 街机游戏中心 — 11 款经典复刻 · 零安装双击即玩</title>
+    <title>OMA GAMES · 街机游戏中心 — 13 款经典复刻 · 零安装双击即玩</title>
     <meta name="title" content="OMA GAMES · 街机游戏中心">
     <meta name="description" content="纯前端街机游戏合集 — 坦克大战、太空侵略者、贪吃蛇、扫雷、2048、打砖块、五子棋等 11 款经典玩法复刻。零安装、零广告、无需登录，浏览器打开即玩。支持中英双语 + 暗色主题。">
     <meta name="keywords" content="街机游戏,在线游戏,HTML5 游戏,坦克大战,贪吃蛇,扫雷,2048,打砖块,太空侵略者,五子棋,俄罗斯方块,黄金矿工,Chrome 恐龙,双人乒乓球,Web Games,Arcade Games,Free Online Games,OMA GAMES,ohmyagent">
@@ -840,6 +840,8 @@
         .gc-2048 { --card-accent: #edc22e; --card-glow: rgba(237, 194, 46, 0.3); }
         .gc-gold-miner { --card-accent: #ffd700; --card-glow: rgba(255, 215, 0, 0.3); }
         .gc-gomoku { --card-accent: #dcb35c; --card-glow: rgba(220, 179, 92, 0.3); }
+        .gc-fireboy-watergirl { --card-accent: #ff8c42; --card-glow: rgba(255, 140, 66, 0.3); }
+        .gc-angry-birds { --card-accent: #dd2222; --card-glow: rgba(221, 34, 34, 0.3); }
 
         /* === Roadmap teaser === */
         /* === Release timeline === */
@@ -1119,7 +1121,7 @@
             <p class="hero-desc" data-i18n="hero_desc">纯前端实现的轻量游戏合集，每一款都致敬经典玩法。无后端、无追踪、无负担 — 双击即玩。</p>
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <div class="hero-stat-num" id="stat-games">11</div>
+                    <div class="hero-stat-num" id="stat-games">13</div>
                     <div class="hero-stat-label" data-i18n="stat_games">GAMES</div>
                 </div>
                 <div class="hero-stat">
@@ -1395,6 +1397,52 @@
                         </div>
                     </div>
                 </a>
+
+                <a href="fireboy-watergirl.html" class="game-card gc-fireboy-watergirl">
+                    <div class="card-thumb">
+                        <span class="card-id">#12</span>
+                        <span class="card-difficulty">⭐⭐⭐ HARD</span>
+                        <img src="screenshots/fireboy-watergirl.jpeg" alt="FIREBOY & WATERGIRL">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <div class="title-stack">
+                                <span>FIREBOY &amp; WATERGIRL</span>
+                                <span class="title-zh" data-i18n="title_fireboy_watergirl">森林冰火人</span>
+                            </div>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="fireboy_watergirl_desc">双人同屏合作解谜。火男孩怕水、水女孩怕火，按钮开门 + 双终点同时到达。12 关递进难度。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_2p_coop">2P CO-OP</span>
+                            <span class="card-tag" data-i18n="tag_puzzle">PUZZLE</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="angry-birds.html" class="game-card gc-angry-birds">
+                    <div class="card-thumb">
+                        <span class="card-id">#13</span>
+                        <span class="card-difficulty">⭐⭐⭐⭐ INSANE</span>
+                        <img src="screenshots/angry-birds.jpeg" alt="ANGRY BIRDS">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <div class="title-stack">
+                                <span>ANGRY BIRDS</span>
+                                <span class="title-zh" data-i18n="title_angry_birds">愤怒的小鸟</span>
+                            </div>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="angry_birds_desc">弹弓物理引擎游戏。Matter.js 驱动刚体物理，拉弹弓预测抛物线，砸倒木 / 石 / 玻璃结构消灭小猪。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">MATTER.JS</span>
+                            <span class="card-tag" data-i18n="tag_physics">PHYSICS</span>
+                            <span class="card-tag" data-i18n="tag_slingshot">SLINGSHOT</span>
+                        </div>
+                    </div>
+                </a>
             </div>
         </section>
 
@@ -1413,6 +1461,19 @@
                     </div>
                     <div class="tl-games">
                         <span class="tl-game">TETRIS ★★★★</span>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <div class="tl-version">
+                        <span class="tl-ver-num">v0.5</span>
+                        <span class="tl-ver-name" data-i18n="tl_v05">合作 & 物理</span>
+                        <span class="tl-date">2026 · 06 · 23</span>
+                    </div>
+                    <div class="tl-games">
+                        <a class="tl-game live" href="fireboy-watergirl.html">FIREBOY &amp; WATERGIRL ★★★</a>
+                        <a class="tl-game live" href="angry-birds.html">ANGRY BIRDS ★★★★</a>
                     </div>
                 </div>
 
@@ -1549,6 +1610,15 @@
                 gomoku_desc: '木质棋盘 15×15 五子棋。8 方向胜负判定 + 估值函数 AI（greedy / minimax），支持人机 / 双人。',
                 tag_eval_fn: '估值函数',
                 tag_minimax: 'MINIMAX',
+                tag_2p_coop: '双人合作',
+                tag_puzzle: '解谜',
+                tag_physics: '物理引擎',
+                tag_slingshot: '弹弓',
+                title_fireboy_watergirl: '森林冰火人',
+                title_angry_birds: '愤怒的小鸟',
+                fireboy_watergirl_desc: '双人同屏合作解谜。火男孩怕水、水女孩怕火，按钮开门 + 双终点同时到达。12 关递进难度。',
+                angry_birds_desc: '弹弓物理引擎游戏。Matter.js 驱动刚体物理，拉弹弓预测抛物线，砸倒木 / 石 / 玻璃结构消灭小猪。',
+                tl_v05: '合作 & 物理',
                 releases_title: '发布记录',
                 releases_meta: '// 最新上线 & 即将到来',
                 tl_upcoming: '即将到来',
@@ -1617,6 +1687,15 @@
                 gomoku_desc: 'Wooden 15×15 board. 8-direction win detection + eval-function AI (greedy / minimax), supports vs AI and 2-player.',
                 tag_eval_fn: 'EVAL FN',
                 tag_minimax: 'MINIMAX',
+                tag_2p_coop: '2P CO-OP',
+                tag_puzzle: 'PUZZLE',
+                tag_physics: 'PHYSICS',
+                tag_slingshot: 'SLINGSHOT',
+                title_fireboy_watergirl: '',
+                title_angry_birds: '',
+                fireboy_watergirl_desc: 'Two-player local co-op puzzle. Fireboy fears water, Watergirl fears fire. Button-door mechanics + dual exits. 12 progressive levels.',
+                angry_birds_desc: 'Slingshot physics game. Matter.js rigid-body physics, drag-aim with trajectory prediction, topple wood / stone / glass structures to defeat pigs.',
+                tl_v05: 'CO-OP & PHYSICS',
                 releases_title: 'RELEASE LOG',
                 releases_meta: '// LATEST & UPCOMING',
                 tl_upcoming: 'COMING SOON',
