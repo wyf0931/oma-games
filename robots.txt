@@ -1,0 +1,27 @@
+# robots.txt — allow all crawlers
+# Site: https://games.ohmyagent.ai/
+
+User-agent: *
+Allow: /
+
+# Block nothing — all games are public
+Disallow:
+
+# LLM / AI crawlers explicitly welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Sitemap
+Sitemap: https://games.ohmyagent.ai/sitemap.xml

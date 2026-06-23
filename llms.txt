@@ -1,0 +1,59 @@
+# OMA GAMES
+
+> OMA GAMES (games.ohmyagent.ai) is a pure-frontend arcade game collection — 11 classic titles reimagined as single-file HTML5 games. No backend, no login, no ads. Deploy on Cloudflare Pages. Bilingual (Chinese / English), dark theme by default.
+
+## What's Here
+
+We rebuild arcade classics with modern tech aesthetics. Each game is a self-contained HTML file using a tiny shared component library (`shared/oma-games.js` + `shared/oma-games.css`) for cross-cutting concerns (i18n, theme, input, game loop, FSM). No npm packages, no build step — just open the HTML and play.
+
+## Released Games (11)
+
+| Title | Difficulty | Core Algorithm | File |
+|---|---|---|---|
+| TANK COMMAND | ★★★ | Behavior Tree + AABB collision + FSM | [tank.html](tank.html) |
+| SPACE INVADERS | ★ | Matrix formation movement + difficulty scaling | [space-invaders.html](space-invaders.html) |
+| PONG | ★ | AI Lerp tracking + angle reflection formula | [pong.html](pong.html) |
+| T-REX RUN | ★ | Infinite scroll + lenient hitbox | [dino.html](dino.html) |
+| SNAKE | ★★ | Linked-list queue + fixed timestep | [snake.html](snake.html) |
+| MINESWEEPER | ★★ | Flood Fill (BFS) + cell state machine | [minesweeper.html](minesweeper.html) |
+| TOWER CLIMB | ★★ | Camera follow + procedural platforms + gravity | [tower-climb.html](tower-climb.html) |
+| BREAKOUT | ★★★ | Vector reflection + 5 power-ups + particles | [breakout.html](breakout.html) |
+| 2048 | ★★★ | 2D array slide-merge + tile transitions | [2048.html](2048.html) |
+| GOLD MINER | ★★★ | Pendulum physics + 6 item types + levels | [gold-miner.html](gold-miner.html) |
+| GOMOKU | ★★★ | 8-direction win detection + eval-function AI (minimax) | [gomoku.html](gomoku.html) |
+
+## Coming Next
+
+- **TETRIS** (★★★★) — SRS rotation matrix + line clears + 7-bag randomizer
+
+## Tech Stack
+
+- Pure HTML5 + CSS3 + ES6+ JavaScript (no framework, no build tool)
+- Canvas 2D for game worlds, DOM for UI
+- Cloudflare Pages deployment (zero backend)
+- Shared component library: [`shared/`](shared/) — see [`docs/component-library.md`](docs/component-library.md)
+- Cross-game state via `localStorage` (`oma_games_lang`, `oma_games_theme`)
+
+## Documentation
+
+- [AGENTS.md](AGENTS.md) — Collaboration guide for AI agents
+- [docs/tank.md](docs/tank.md) — TANK development case study (architecture / FSM / behavior tree)
+- [docs/component-library.md](docs/component-library.md) — Shared library API
+- [docs/roadmap.md](docs/roadmap.md) — All games roadmap (design specs per title)
+- [README.md](README.md) — Project overview (English)
+- [README.zh-CN.md](README.zh-CN.md) — 项目说明（中文）
+
+## Dev Stack & Method
+
+- **Tools**: Claude Code (CLI) + GLM 5.2
+- **Method**: Vibe Coding — natural-language-driven development, AI implements while human directs
+- **Source**: [github.com/wyf0931/oma-games](https://github.com/wyf0931/oma-games)
+- **Live**: [games.ohmyagent.ai](https://games.ohmyagent.ai/)
+
+## Conventions
+
+- Each game is `<game>.html` at the root, self-contained
+- New games MUST use `OmaGames.ui.header()` for the top bar (consistent UX)
+- Difficulty: 3 levels (beginner / intermediate / advanced)
+- Default Chinese with zh/en i18n toggle; default dark theme
+- Browser automation testing via Chrome DevTools MCP (no test framework in repo)

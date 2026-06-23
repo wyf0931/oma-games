@@ -1,64 +1,142 @@
-# oma-games
+# OMA GAMES
 
-OhMyAgent 游戏合集 — Vibe Coding 驱动的轻量游戏 Demo。
+**An arcade game collection reborn in modern web aesthetics.** 11 classic titles rebuilt as single-file HTML5 games — no install, no ads, no login. Browser open and play.
 
-## 在线访问
+[![Live](https://img.shields.io/badge/live-games.ohmyagent.ai-00f0ff?style=flat-square)](https://games.ohmyagent.ai/)
+[![Games](https://img.shields.io/badge/games-11-ff2bd1?style=flat-square)](#-game-list)
+[![License](https://img.shields.io/badge/license-MIT-a78bfa?style=flat-square)](LICENSE)
 
-🚀 **[games.ohmyagent.ai](https://games.ohmyagent.ai)** (Cloudflare Pages)
+🌐 **多语言**: [English](README.md) · [简体中文](README.zh-CN.md)
 
-## 功能特性
+🚀 **Play now**: <https://games.ohmyagent.ai>
 
-- **🌗 深色/浅色模式** — 自动记住用户偏好，默认深色主题
-- **🌐 中英文切换** — i18n 支持，默认中文
-- **🎮 游戏卡片轮播** — 纯 CSS 动画，3 秒自动旋转截图，零 JavaScript 依赖
+---
 
-## 游戏列表
+## 🎮 Game List
 
-| 游戏 | 文件 | 说明 |
-|------|------|------|
-| TANK COMMAND | `tank.html` | 经典坦克大战，军事 HUD 风格，可自定义敌机数量、难度和弹幕模式 |
+All 11 games are live. Each is a self-contained HTML file — zero dependencies, zero build step.
 
-## 路线图
+| # | Title | Difficulty | Core Tech | Play |
+|---|---|---|---|---|
+| 1 | **TANK COMMAND** | ★★★ | Behavior Tree + AABB collision + FSM | [▶](https://games.ohmyagent.ai/tank) |
+| 2 | **SPACE INVADERS** | ★ | Matrix formation movement | [▶](https://games.ohmyagent.ai/space-invaders) |
+| 3 | **PONG** | ★ | AI Lerp tracking + angle reflection | [▶](https://games.ohmyagent.ai/pong) |
+| 4 | **T-REX RUN** | ★ | Infinite scroll + lenient hitbox | [▶](https://games.ohmyagent.ai/dino) |
+| 5 | **SNAKE** | ★★ | Linked-list queue + fixed timestep | [▶](https://games.ohmyagent.ai/snake) |
+| 6 | **MINESWEEPER** | ★★ | Flood Fill (BFS) + cell state machine | [▶](https://games.ohmyagent.ai/minesweeper) |
+| 7 | **TOWER CLIMB** | ★★ | Camera follow + procedural platforms + gravity | [▶](https://games.ohmyagent.ai/tower-climb) |
+| 8 | **BREAKOUT** | ★★★ | Vector reflection + 5 power-ups + particles | [▶](https://games.ohmyagent.ai/breakout) |
+| 9 | **2048** | ★★★ | 2D array slide-merge + tile transitions | [▶](https://games.ohmyagent.ai/2048) |
+| 10 | **GOLD MINER** | ★★★ | Pendulum physics + 6 item types + levels | [▶](https://games.ohmyagent.ai/gold-miner) |
+| 11 | **GOMOKU** | ★★★ | 8-direction win detection + eval-function AI | [▶](https://games.ohmyagent.ai/gomoku) |
 
-后续计划实现的游戏 — **任务看板在 [GitHub Issues](https://github.com/wyf0931/oma-games/issues)**，详细技术方案见 [`docs/roadmap.md`](docs/roadmap.md)：
+**Coming next**: TETRIS (★★★★) — SRS rotation matrix + 7-bag randomizer
 
-| 游戏 | 难度 | 核心算法 |
-|------|------|---------|
-| 太空侵略者 Space Invaders | ⭐ | 矩阵阵列移动 + 难度递增 |
-| 双人乒乓球 Pong | ⭐ | AI Y 轴追踪 + 角度反射 |
-| Chrome 小恐龙 T-Rex Run | ⭐ | 无限地形拼接 + 宽松碰撞箱 |
-| 贪吃蛇 Snake | ⭐⭐ | 链表队列 + 食物不重叠采样 |
-| 扫雷 Minesweeper | ⭐⭐ | Flood Fill + 格子状态机 |
-| 是男人就下100层 Tower Climb | ⭐⭐ | 视差滚动 + 平台生成 + 重力 |
-| 打砖块 Breakout | ⭐⭐⭐ | 向量反射 + 道具系统 |
-| 2048 | ⭐⭐⭐ | 二维数组滑动合并 + 过渡动画 |
-| 黄金矿工 Gold Miner | ⭐⭐⭐ | 摆锤物理 + 蓄力机制 |
-| 五子棋 Gomoku | ⭐⭐⭐ | 8 方向连续计数 + 估值函数 AI |
-| 俄罗斯方块 Tetris | ⭐⭐⭐⭐ | SRS 旋转矩阵 + 消行 + 7-bag |
+## 🛠 Tech Stack
 
-## 技术栈
+- **Pure HTML5 + CSS3 + ES6+ JavaScript** — no framework, no build tool
+- **Canvas 2D** for game worlds, **DOM** for UI
+- **Shared component library** ([`shared/`](shared/)) for i18n / theme / input / game loop / FSM
+- **Cloudflare Pages** deployment — zero backend
+- **Google Fonts** for typography (Audiowide, Orbitron, Rajdhani, etc.)
 
-- 纯 HTML5 + CSS3 + JavaScript (ES6+)
-- Canvas 2D（游戏世界渲染）
-- Lucide Icons (CDN)
-- 单文件架构，零构建工具
+### Core algorithms in use
 
-### 核心技术
+- **Game loop** — `requestAnimationFrame` + update/draw separation
+- **Finite State Machine (FSM)** — MENU / PLAYING / GAMEOVER / WIN state transitions
+- **Behavior Tree** — `Selector / Sequence` + condition/action nodes for NPC AI
+- **AABB collision** — axis-aligned bounding boxes + rejection sampling
+- **Flood Fill** — iterative BFS for Minesweeper
+- **Minimax + alpha-beta pruning** — Gomoku AI
+- **Pendulum physics** — Gold Miner hook
+- **Vector reflection** — Pong + Breakout
 
-- **游戏循环** — `requestAnimationFrame` + update/draw 分离
-- **有限状态机（FSM）** — `MENU / PLAYING / GAMEOVER / WIN` 状态流转
-- **行为树（BT）** — `Selector / Sequence` + 条件/动作节点，驱动 NPC AI
-- **AABB 碰撞** — 轴对齐包围盒 + 拒绝采样生成单位
-- **CSS 变量主题** — 暗色为默认，`[data-theme]` 切换
-- **i18n** — 双语字典 + `data-i18n` 属性，`localStorage` 持久化偏好
+## 🔧 Development Tools & Method
 
-> 详细架构、代码组织、组件化、交互设计请见 [`docs/tank.md`](docs/tank.md)
+| Tool | Role |
+|---|---|
+| [**Claude Code**](https://claude.com/claude-code) | AI coding agent — implements games from natural-language specs |
+| [**GLM 5.2**](https://chatglm.cn) | Reasoning model behind Claude Code in this project |
+| [**Chrome DevTools MCP**](https://github.com/ChromeDevTools/chrome-devtools-mcp) | Browser automation for testing |
+| [**Cloudflare Wrangler**](https://developers.cloudflare.com/workers/wrangler/) | Deploy to Cloudflare Pages |
 
-## 部署
+**Method**: **Vibe Coding** — natural-language-driven development. Human directs with intent and aesthetic choices; AI implements the code. The repo is the artifact of this collaboration: 11 games shipped in ~2 days with no manual line-by-line coding.
 
-- Cloudflare Pages
-- 自动部署，分支推送即生效
+If you're curious about the workflow, every commit message in [`git log`](https://github.com/wyf0931/oma-games/commits/main) shows what AI was instructed vs. what it produced.
 
-## 关于
+## 📁 Project Structure
 
-OhMyAgent 项目的子板块，持续更新和添加新的游戏 Demo。
+```
+oma-games/
+├── index.html              Homepage (arcade-style game center)
+├── tank.html               TANK (single-file era)
+├── <game>.html             Each game in its own file
+├── shared/
+│   ├── oma-games.js        Shared library: i18n / theme / input / loop / fsm / ui.header()
+│   └── oma-games.css       Reset + theme tokens + UI primitives
+├── screenshots/            Game thumbnails (used by homepage + SEO)
+├── docs/
+│   ├── tank.md             TANK development case study
+│   ├── component-library.md  Shared library API docs
+│   └── roadmap.md          Game design specs (all 12 titles)
+├── llms.txt                Site summary for LLMs (https://llmstxt.org)
+├── robots.txt              Crawler directives
+├── sitemap.xml             SEO sitemap
+├── AGENTS.md               Collaboration guide for AI agents
+└── README.md               This file (English)
+```
+
+## 📚 Documentation
+
+- [`docs/tank.md`](docs/tank.md) — How TANK is built: FSM / behavior tree / AABB / i18n
+- [`docs/component-library.md`](docs/component-library.md) — `OmaGames.*` shared library API
+- [`docs/roadmap.md`](docs/roadmap.md) — Design specs for all 12 games
+- [`AGENTS.md`](AGENTS.md) — Conventions for AI agents working on this repo
+- [`llms.txt`](llms.txt) — Concise summary for LLM crawlers
+
+## 🎨 Features
+
+- **🌗 Dark / light theme** — remembers your preference
+- **🌐 Chinese / English** — full i18n with `localStorage` persistence
+- **🎯 Per-game difficulty** — beginner / intermediate / advanced
+- **📱 PC-first layout** — keyboard + mouse, responsive on tablet
+- **🚫 No ads, no tracking, no login** — pure gaming
+
+## 🚀 Deployment
+
+Deployed on **Cloudflare Pages** at <https://games.ohmyagent.ai>.
+
+To deploy your own fork:
+
+```bash
+# Clone
+git clone https://github.com/wyf0931/oma-games.git
+cd oma-games
+
+# Option A: Connect the repo to Cloudflare Pages dashboard
+# Option B: Deploy via Wrangler CLI
+npx wrangler pages deploy . --project-name=oma-games
+```
+
+No environment variables. No build commands. Just push static files.
+
+## 🤝 Contributing
+
+This is a Vibe Coding showcase — contributions welcome! Two ways to help:
+
+1. **Play & report bugs** — open an [issue](https://github.com/wyf0931/oma-games/issues)
+2. **Implement the next game** — claim an open issue (e.g. TETRIS #11) and ship it following the patterns in `docs/`
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).
+
+## 🙏 Credits
+
+- **Game designs** — Inspired by arcade classics (Atari, Namco, Taito, Nintendo, etc.)
+- **Dev stack** — Claude Code, GLM, Cloudflare, Google Fonts
+- **Vibe Coding** — The methodology that made this possible
+
+---
+
+<p align="center">Built with <a href="https://claude.com/claude-code">Claude Code</a> + <strong>Vibe Coding</strong></p>
