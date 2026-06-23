@@ -537,12 +537,27 @@
         let engine, world;
         function initEngine() {
             if (engine) {
+                Events.off(engine, 'collisionStart');
                 Composite.clear(world, false);
                 Engine.clear(engine);
             }
             engine = Engine.create();
             world = engine.world;
             engine.gravity.y = 1;
+
+            // Register collision handler after engine exists (engine is undefined before this runs)
+            Events.on(engine, 'collisionStart', event => {
+                for (const pair of event.pairs) {
+                    const { bodyA, bodyB } = pair;
+                    const speedA = bodyA.speed || 0;
+                    const speedB = bodyB.speed || 0;
+                    const impact = speedA + speedB;
+                    if (impact < 4) continue;
+
+                    applyDamage(bodyA, impact);
+                    applyDamage(bodyB, impact);
+                }
+            });
         }
 
         // ===== Level definitions (relative to GROUND_Y) =====
@@ -766,7 +781,6 @@
                 return;
             }
             const bird = Bodies.circle(SLING_X, SLING_Y, BIRD_RADIUS, {
-                isStatic: true,
                 density: 0.005,
                 friction: 0.5,
                 restitution: 0.4,
@@ -776,6 +790,10 @@
                     hp: 100
                 }
             });
+            // Set static AFTER creation — passing isStatic:true at creation time
+            // skips Body.set()'s _original backup, so later setStatic(false) can't
+            // restore mass/inertia and the bird won't move when launched.
+            Body.setStatic(bird, true);
             Composite.add(world, bird);
             game.currentBird = bird;
             game.launched = false;
@@ -783,29 +801,7 @@
             game.settleTimer = 0;
         }
 
-        // ===== Collision handling =====
-        Events.on(engine, 'collisionStart', event => {
-            for (const pair of event.pairs) {
-                const { bodyA, bodyB } = pair;
-                const speedA = bodyA.speed || 0;
-                const speedB = bodyB.speed || 0;
-                const impact = speedA + speedB;
-                if (impact < 4) continue;
-
-                applyDamage(bodyA, impact);
-                applyDamage(bodyB, impact);
-
-                // Particles on impact
-                if (impact > 8) {
-                    const pos = pair.collision && pair.collision.supports && pair.collision.supports[0]
-                        ? pair.collision.supports[0]
-                        : { x: (bodyA.position.x + bodyB.position.x) / 2, y: (bodyA.position.y + bodyB.position.y) / 2 };
-                    spawnImpactParticles(pos.x, pos.y, bodyA);
-                    spawnImpactParticles(pos.x, pos.y, bodyB);
-                    game.shake = Math.min(8, game.shake + impact * 0.15);
-                }
-            }
-        });
+        // (Collision handler is registered inside initEngine() — engine must exist first)
 
         function applyDamage(body, impact) {
             if (!body.gameData) return;
