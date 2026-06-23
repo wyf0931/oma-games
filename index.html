@@ -251,29 +251,7 @@
             position: relative;
         }
 
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border: 1px solid var(--border-strong);
-            background: rgba(0, 240, 255, 0.05);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 3px;
-            color: var(--neon-cyan);
-            margin-bottom: 28px;
-            position: relative;
-        }
-        .hero-badge::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--neon-green);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--neon-green);
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+        .hero-badge { display: none; }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
@@ -753,62 +731,161 @@
         .gc-gomoku { --card-accent: #dcb35c; --card-glow: rgba(220, 179, 92, 0.3); }
 
         /* === Roadmap teaser === */
-        .roadmap {
+        /* === Release timeline === */
+        .releases {
             margin: 100px 0 60px;
-            padding: 40px;
-            border: 1px solid var(--border);
-            background: linear-gradient(135deg, var(--bg-card) 0%, transparent 100%);
-            position: relative;
-            text-align: center;
         }
 
-        .roadmap::before {
-            content: 'COMING SOON';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 2px 12px;
-            background: var(--bg-void);
-            color: var(--neon-magenta);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 3px;
-            text-shadow: 0 0 8px rgba(255, 43, 209, 0.6);
+        .releases-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin-bottom: 32px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .roadmap-title {
+        .releases-title {
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
             font-size: 28px;
-            letter-spacing: 3px;
-            margin-bottom: 12px;
-        }
-
-        .roadmap-desc {
-            color: var(--text-secondary);
-            font-size: 15px;
-            max-width: 600px;
-            margin: 0 auto 24px;
-            line-height: 1.6;
-        }
-
-        .roadmap-link {
-            display: inline-flex;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border: 1px solid var(--neon-magenta);
-            color: var(--neon-magenta);
+            gap: 16px;
+        }
+
+        .releases-title::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: var(--neon-magenta);
+            box-shadow: 0 0 12px var(--neon-magenta);
+        }
+
+        .releases-meta {
             font-family: 'Share Tech Mono', monospace;
             font-size: 12px;
+            color: var(--text-dim);
             letter-spacing: 2px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 14px;
+            bottom: 14px;
+            width: 2px;
+            background: linear-gradient(180deg,
+                var(--neon-magenta) 0%,
+                var(--neon-cyan) 50%,
+                rgba(167, 139, 250, 0.3) 100%
+            );
+            box-shadow: 0 0 6px rgba(255, 43, 209, 0.3);
+        }
+
+        .tl-item {
+            position: relative;
+            padding: 0 0 32px 28px;
+        }
+        .tl-item:last-child { padding-bottom: 0; }
+
+        .tl-dot {
+            position: absolute;
+            left: -28px;
+            top: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            border: 2px solid var(--bg-void);
+            box-shadow: 0 0 10px var(--neon-cyan), 0 0 0 3px rgba(0, 240, 255, 0.15);
+        }
+        .tl-item.upcoming .tl-dot {
+            background: transparent;
+            border: 2px dashed var(--neon-magenta);
+            box-shadow: 0 0 10px rgba(255, 43, 209, 0.4);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 43, 209, 0.4); }
+            50% { box-shadow: 0 0 16px rgba(255, 43, 209, 0.7), 0 0 0 6px rgba(255, 43, 209, 0.1); }
+        }
+
+        .tl-version {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .tl-ver-num {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+            letter-spacing: 2px;
+        }
+        .tl-item.upcoming .tl-ver-num {
+            color: var(--neon-magenta);
+            text-shadow: 0 0 8px rgba(255, 43, 209, 0.4);
+        }
+
+        .tl-ver-name {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            font-size: 16px;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+
+        .tl-date {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        .tl-games {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .tl-game {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            letter-spacing: 1px;
             transition: all 0.2s;
         }
-        .roadmap-link:hover {
-            background: var(--neon-magenta);
-            color: var(--bg-void);
-            box-shadow: 0 0 20px rgba(255, 43, 209, 0.4);
+        .tl-game.live:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+        .tl-item.upcoming .tl-game {
+            border-color: var(--neon-magenta);
+            color: var(--neon-magenta);
+            background: rgba(255, 43, 209, 0.05);
+            box-shadow: inset 0 0 12px rgba(255, 43, 209, 0.08);
+        }
+
+        @media (max-width: 600px) {
+            .tl-version { font-size: 14px; gap: 8px; }
+            .tl-ver-num, .tl-ver-name { font-size: 14px; }
         }
 
         /* === Footer === */
@@ -914,7 +991,7 @@
             <nav class="nav">
                 <a href="#arcade" data-i18n="nav_arcade">街机</a>
                 <a href="#featured" data-i18n="nav_featured">推荐</a>
-                <a href="#roadmap" data-i18n="nav_roadmap">路线图</a>
+                <a href="#releases" data-i18n="nav_releases">更新</a>
                 <a href="https://github.com/wyf0931/oma-games" target="_blank" rel="noopener">GitHub</a>
             </nav>
             <div class="header-controls">
@@ -926,7 +1003,6 @@
 
     <main>
         <section class="hero">
-            <div class="hero-badge" data-i18n="hero_badge">CLOUDFLARE EDGE · ZERO BACKEND</div>
             <h1 class="hero-title" data-i18n="hero_title">OMA GAMES</h1>
             <div class="hero-subtitle" data-i18n="hero_subtitle">// ARCADE GAME HUB //</div>
             <p class="hero-desc" data-i18n="hero_desc">纯前端实现的轻量游戏合集，每一款都致敬经典玩法。无后端、无追踪、无负担 — 双击即玩。</p>
@@ -936,8 +1012,8 @@
                     <div class="hero-stat-label" data-i18n="stat_games">GAMES</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="hero-stat-num alt">1</div>
-                    <div class="hero-stat-label" data-i18n="stat_roadmap">ROADMAP</div>
+                    <div class="hero-stat-num alt">0</div>
+                    <div class="hero-stat-label" data-i18n="stat_ads">ADS</div>
                 </div>
                 <div class="hero-stat">
                     <div class="hero-stat-num alt2">60</div>
@@ -1180,13 +1256,79 @@
             </div>
         </section>
 
-        <section id="roadmap" class="roadmap">
-            <h2 class="roadmap-title" data-i18n="roadmap_title">更多游戏即将上线</h2>
-            <p class="roadmap-desc" data-i18n="roadmap_desc">俄罗斯方块 Tetris（4 星终局挑战）正在路上。在 GitHub Issues 跟进进度或认领实现。</p>
-            <a href="https://github.com/wyf0931/oma-games/issues" target="_blank" rel="noopener" class="roadmap-link">
-                <span data-i18n="view_roadmap">VIEW ROADMAP</span>
-                <span>→</span>
-            </a>
+        <section id="releases" class="releases">
+            <div class="releases-head">
+                <h2 class="releases-title" data-i18n="releases_title">RELEASE LOG</h2>
+                <div class="releases-meta" data-i18n="releases_meta">// 发布记录</div>
+            </div>
+            <div class="timeline">
+                <div class="tl-item upcoming">
+                    <span class="tl-dot"></span>
+                    <div class="tl-version">
+                        <span class="tl-ver-num">SOON</span>
+                        <span class="tl-ver-name" data-i18n="tl_upcoming">即将到来</span>
+                        <span class="tl-date">—</span>
+                    </div>
+                    <div class="tl-games">
+                        <span class="tl-game">TETRIS ★★★★</span>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <div class="tl-version">
+                        <span class="tl-ver-num">v0.4</span>
+                        <span class="tl-ver-name" data-i18n="tl_v04">高阶挑战</span>
+                        <span class="tl-date">2026 · 06 · 23</span>
+                    </div>
+                    <div class="tl-games">
+                        <a class="tl-game live" href="breakout.html">BREAKOUT ★★★</a>
+                        <a class="tl-game live" href="2048.html">2048 ★★★</a>
+                        <a class="tl-game live" href="gold-miner.html">GOLD MINER ★★★</a>
+                        <a class="tl-game live" href="gomoku.html">GOMOKU ★★★</a>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <div class="tl-version">
+                        <span class="tl-ver-num">v0.3</span>
+                        <span class="tl-ver-name" data-i18n="tl_v03">益智拓展</span>
+                        <span class="tl-date">2026 · 06 · 23</span>
+                    </div>
+                    <div class="tl-games">
+                        <a class="tl-game live" href="snake.html">SNAKE ★★</a>
+                        <a class="tl-game live" href="minesweeper.html">MINESWEEPER ★★</a>
+                        <a class="tl-game live" href="tower-climb.html">TOWER CLIMB ★★</a>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <div class="tl-version">
+                        <span class="tl-ver-num">v0.2</span>
+                        <span class="tl-ver-name" data-i18n="tl_v02">街机经典</span>
+                        <span class="tl-date">2026 · 06 · 22</span>
+                    </div>
+                    <div class="tl-games">
+                        <a class="tl-game live" href="space-invaders.html">SPACE INVADERS ★</a>
+                        <a class="tl-game live" href="pong.html">PONG ★</a>
+                        <a class="tl-game live" href="dino.html">T-REX RUN ★</a>
+                    </div>
+                </div>
+
+                <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <div class="tl-version">
+                        <span class="tl-ver-num">v0.1</span>
+                        <span class="tl-ver-name" data-i18n="tl_v01">初版上线</span>
+                        <span class="tl-date">2026 · 06 · 22</span>
+                    </div>
+                    <div class="tl-games">
+                        <a class="tl-game live" href="tank.html">TANK COMMAND ★★★</a>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -1209,13 +1351,12 @@
             zh: {
                 nav_arcade: '街机',
                 nav_featured: '推荐',
-                nav_roadmap: '路线图',
-                hero_badge: 'CLOUDFLARE 边缘 · 零后端',
+                nav_releases: '更新',
                 hero_title: 'OMA GAMES',
                 hero_subtitle: '// 街机游戏中心 //',
                 hero_desc: '纯前端实现的轻量游戏合集，每一款都致敬经典玩法。无后端、无追踪、无负担 — 双击即玩。',
                 stat_games: '款游戏',
-                stat_roadmap: '开发中',
+                stat_ads: '广告',
                 stat_fps: '帧 / 秒',
                 featured: '特色推荐',
                 arcade: '街机',
@@ -1254,21 +1395,24 @@
                 gomoku_desc: '木质棋盘 15×15 五子棋。8 方向胜负判定 + 估值函数 AI（greedy / minimax），支持人机 / 双人。',
                 tag_eval_fn: '估值函数',
                 tag_minimax: 'MINIMAX',
-                roadmap_title: '更多游戏即将上线',
-                roadmap_desc: '俄罗斯方块 Tetris（4 星终局挑战）正在路上。在 GitHub Issues 跟进进度或认领实现。',
-                view_roadmap: '查看路线图',
+                releases_title: '发布记录',
+                releases_meta: '// 最新上线 & 即将到来',
+                tl_upcoming: '即将到来',
+                tl_v01: '初版上线',
+                tl_v02: '街机经典',
+                tl_v03: '益智拓展',
+                tl_v04: '高阶挑战',
                 footer_note: 'VIBE CODING 出品'
             },
             en: {
                 nav_arcade: 'ARCADE',
                 nav_featured: 'FEATURED',
-                nav_roadmap: 'ROADMAP',
-                hero_badge: 'CLOUDFLARE EDGE · ZERO BACKEND',
+                nav_releases: 'UPDATES',
                 hero_title: 'OMA GAMES',
                 hero_subtitle: '// ARCADE GAME HUB //',
                 hero_desc: 'Lightweight arcade collection built pure-frontend. Every title pays homage to a classic. No backend, no trackers, no bloat — just click and play.',
                 stat_games: 'GAMES',
-                stat_roadmap: 'ROADMAP',
+                stat_ads: 'ADS',
                 stat_fps: 'FPS',
                 featured: 'FEATURED',
                 arcade: 'ARCADE',
@@ -1307,9 +1451,13 @@
                 gomoku_desc: 'Wooden 15×15 board. 8-direction win detection + eval-function AI (greedy / minimax), supports vs AI and 2-player.',
                 tag_eval_fn: 'EVAL FN',
                 tag_minimax: 'MINIMAX',
-                roadmap_title: 'More Titles Coming',
-                roadmap_desc: 'Tetris (4-star finale challenge) is on the way. Track progress or claim work via GitHub Issues.',
-                view_roadmap: 'VIEW ROADMAP',
+                releases_title: 'RELEASE LOG',
+                releases_meta: '// LATEST & UPCOMING',
+                tl_upcoming: 'COMING SOON',
+                tl_v01: 'INITIAL LAUNCH',
+                tl_v02: 'ARCADE CLASSICS',
+                tl_v03: 'PUZZLE EXTENDED',
+                tl_v04: 'HARDCORE',
                 footer_note: 'BUILT WITH VIBE CODING'
             }
         });
