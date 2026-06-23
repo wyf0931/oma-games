@@ -881,9 +881,11 @@
                 if (depth > this.maxDepth) this.maxDepth = depth;
 
                 // --- Screen shake when close to death ---
-                const dangerDist = this.deathLineY - p.y;  // negative when dead
-                if (dangerDist < 80) {
-                    this.shakeT = Math.max(this.shakeT, (80 - dangerDist) / 80);
+                // Safety distance: how far player is BELOW the death line (positive when safe).
+                // Die triggers when p.y < deathLineY, so shake only in [0, 80] window above death.
+                const safetyDist = p.y - this.deathLineY;
+                if (safetyDist > 0 && safetyDist < 80) {
+                    this.shakeT = Math.max(this.shakeT, (80 - safetyDist) / 80);
                 } else {
                     this.shakeT *= 0.9;
                 }
@@ -922,11 +924,14 @@
                 const speedRatio = this.player ? Math.abs(this.player.vy) / MAX_VY : 0;
                 speedEl.textContent = '×' + (1 + speedRatio * 1.5).toFixed(1);
                 platformsPassedEl.textContent = this.platformsPassed;
-                // Pulse depth red when close to death line
-                if (this.player && this.deathLineY - this.player.y < 80) {
-                    depthEl.classList.add('danger');
-                } else {
-                    depthEl.classList.remove('danger');
+                // Pulse depth red when close to death line (only in actual danger zone)
+                if (this.player) {
+                    const safetyDist = this.player.y - this.deathLineY;
+                    if (safetyDist > 0 && safetyDist < 80) {
+                        depthEl.classList.add('danger');
+                    } else {
+                        depthEl.classList.remove('danger');
+                    }
                 }
             },
 
