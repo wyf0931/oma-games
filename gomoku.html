@@ -1177,19 +1177,19 @@
             if (color === BLACK) game.score.black++;
             else game.score.white++;
             updateHud();
-            draw();
+            drawBoard();
             return true;
         }
         if (isBoardFull(game.board)) {
             machine.transition('draw');
             updateHud();
-            draw();
+            drawBoard();
             return true;
         }
         // Switch turn
         game.current = (color === BLACK) ? WHITE : BLACK;
         updateHud();
-        draw();
+        drawBoard();
         return true;
     }
 
@@ -1203,7 +1203,7 @@
                 scheduleAIMove();
             }
             updateHud();
-            draw();
+            drawBoard();
             return;
         }
         if (game.aiThinking) return;
@@ -1304,31 +1304,31 @@
 
     canvas.addEventListener('mousemove', (e) => {
         if (!machine.is('PLAYING') || game.aiThinking) {
-            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            if (game.hoverCell) { game.hoverCell = null; drawBoard(); }
             return;
         }
         if (game.mode === 'ai' && game.current !== game.playerSide) {
-            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            if (game.hoverCell) { game.hoverCell = null; drawBoard(); }
             return;
         }
         const p = canvasPointFromEvent(e);
         const cell = pixelToCell(p.x, p.y);
         if (!cell) {
-            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            if (game.hoverCell) { game.hoverCell = null; drawBoard(); }
             return;
         }
         if (game.board[cell.r][cell.c] !== EMPTY) {
-            if (game.hoverCell) { game.hoverCell = null; draw(); }
+            if (game.hoverCell) { game.hoverCell = null; drawBoard(); }
             return;
         }
         if (!game.hoverCell || game.hoverCell.r !== cell.r || game.hoverCell.c !== cell.c) {
             game.hoverCell = cell;
-            draw();
+            drawBoard();
         }
     });
 
     canvas.addEventListener('mouseleave', () => {
-        if (game.hoverCell) { game.hoverCell = null; draw(); }
+        if (game.hoverCell) { game.hoverCell = null; drawBoard(); }
     });
 
     canvas.addEventListener('click', (e) => {
@@ -1367,7 +1367,7 @@
             resetBoard();
             machine.set('MENU');
             updateHud();
-            draw();
+            drawBoard();
         });
     });
 
@@ -1398,7 +1398,7 @@
         resetBoard();
         machine.set('MENU');
         updateHud();
-        draw();
+        drawBoard();
         showToast(i18n.t('reset'));
     });
 
@@ -1407,7 +1407,7 @@
         machine.set('MENU');
         machine.transition('start');
         updateHud();
-        draw();
+        drawBoard();
         // If AI plays black (first move), let AI open
         if (game.mode === 'ai' && game.aiSide === BLACK) {
             scheduleAIMove();
@@ -1425,7 +1425,7 @@
             resetBoard();
             machine.set('MENU');
             updateHud();
-            draw();
+            drawBoard();
         }
     });
 
@@ -1443,7 +1443,7 @@
         game.winLine = null;
         if (machine.is('WIN') || machine.is('DRAW')) machine.set('PLAYING');
         updateHud();
-        draw();
+        drawBoard();
     }
 
     // Toast
@@ -1459,7 +1459,7 @@
     // Re-render on theme/lang change (observed via the header buttons which call theme.toggle / i18n.toggle)
     // We poll theme.current lightly. Simpler: hook into the toggle buttons after they're created.
     const observer = new MutationObserver(() => {
-        draw();
+        drawBoard();
         updateHud();
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -1470,7 +1470,7 @@
     // or when AI is thinking (for status flicker). Otherwise event-driven.
     let rafId = null;
     function animLoop() {
-        draw();
+        drawBoard();
         rafId = requestAnimationFrame(animLoop);
     }
     function startAnim() { if (!rafId) rafId = requestAnimationFrame(animLoop); }
@@ -1482,7 +1482,7 @@
     // ===== Init =====
     resetBoard();
     updateHud();
-    draw();
+    drawBoard();
     </script>
 </body>
 </html>

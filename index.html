@@ -747,6 +747,10 @@
         .gc-snake { --card-accent: var(--neon-magenta); --card-glow: rgba(255, 43, 209, 0.25); }
         .gc-minesweeper { --card-accent: var(--neon-purple); --card-glow: rgba(167, 139, 250, 0.25); }
         .gc-tower-climb { --card-accent: #ff8c1a; --card-glow: rgba(255, 140, 26, 0.25); }
+        .gc-breakout { --card-accent: var(--neon-magenta); --card-glow: rgba(255, 43, 209, 0.3); }
+        .gc-2048 { --card-accent: #edc22e; --card-glow: rgba(237, 194, 46, 0.3); }
+        .gc-gold-miner { --card-accent: #ffd700; --card-glow: rgba(255, 215, 0, 0.3); }
+        .gc-gomoku { --card-accent: #dcb35c; --card-glow: rgba(220, 179, 92, 0.3); }
 
         /* === Roadmap teaser === */
         .roadmap {
@@ -928,11 +932,11 @@
             <p class="hero-desc" data-i18n="hero_desc">纯前端实现的轻量游戏合集，每一款都致敬经典玩法。无后端、无追踪、无负担 — 双击即玩。</p>
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <div class="hero-stat-num" id="stat-games">7</div>
+                    <div class="hero-stat-num" id="stat-games">11</div>
                     <div class="hero-stat-label" data-i18n="stat_games">GAMES</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="hero-stat-num alt">5</div>
+                    <div class="hero-stat-num alt">1</div>
                     <div class="hero-stat-label" data-i18n="stat_roadmap">ROADMAP</div>
                 </div>
                 <div class="hero-stat">
@@ -1093,12 +1097,92 @@
                         </div>
                     </div>
                 </a>
+
+                <a href="breakout.html" class="game-card gc-breakout">
+                    <div class="card-thumb">
+                        <span class="card-id">#07</span>
+                        <span class="card-difficulty">⭐⭐⭐ HARD</span>
+                        <img src="screenshots/breakout.jpeg" alt="BREAKOUT">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>BREAKOUT</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="breakout_desc">霓虹紫青砖墙。向量反射物理，5 种道具（加宽 / 粘性 / 多球 / 激光 / 加速），粒子爆炸。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_reflect">REFLECT</span>
+                            <span class="card-tag" data-i18n="tag_powerups">POWER-UPS</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="2048.html" class="game-card gc-2048">
+                    <div class="card-thumb">
+                        <span class="card-id">#08</span>
+                        <span class="card-difficulty">⭐⭐⭐ HARD</span>
+                        <img src="screenshots/2048.jpeg" alt="2048">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>2048</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="2048_desc">经典暖色合并。二维数组滑动算法 + tile 平滑过渡动画，4×4 / 5×5 / 6×6 三档棋盘。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">DOM</span>
+                            <span class="card-tag" data-i18n="tag_slide_merge">SLIDE MERGE</span>
+                            <span class="card-tag" data-i18n="tag_css_transit">CSS ANIM</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="gold-miner.html" class="game-card gc-gold-miner">
+                    <div class="card-thumb">
+                        <span class="card-id">#09</span>
+                        <span class="card-difficulty">⭐⭐⭐ HARD</span>
+                        <img src="screenshots/gold-miner.jpeg" alt="GOLD MINER">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>GOLD MINER</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="gold_miner_desc">卡通西部矿洞。摆锤物理钩爪，6 种物品（金块 / 钻石 / 石头 / 神秘袋），关卡推进。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_pendulum">PENDULUM</span>
+                            <span class="card-tag" data-i18n="tag_levels">LEVELS</span>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="gomoku.html" class="game-card gc-gomoku">
+                    <div class="card-thumb">
+                        <span class="card-id">#10</span>
+                        <span class="card-difficulty">⭐⭐⭐ HARD</span>
+                        <img src="screenshots/gomoku.jpeg" alt="GOMOKU">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">
+                            <span>GOMOKU</span>
+                            <span class="card-arrow">▶</span>
+                        </div>
+                        <p class="card-desc" data-i18n="gomoku_desc">木质棋盘 15×15 五子棋。8 方向胜负判定 + 估值函数 AI（greedy / minimax），支持人机 / 双人。</p>
+                        <div class="card-tags">
+                            <span class="card-tag">CANVAS</span>
+                            <span class="card-tag" data-i18n="tag_eval_fn">EVAL FN</span>
+                            <span class="card-tag" data-i18n="tag_minimax">MINIMAX</span>
+                        </div>
+                    </div>
+                </a>
             </div>
         </section>
 
         <section id="roadmap" class="roadmap">
             <h2 class="roadmap-title" data-i18n="roadmap_title">更多游戏即将上线</h2>
-            <p class="roadmap-desc" data-i18n="roadmap_desc">2048 / 打砖块 / 黄金矿工 / 五子棋 / 俄罗斯方块 等已在路上。在 GitHub Issues 跟进进度或认领实现。</p>
+            <p class="roadmap-desc" data-i18n="roadmap_desc">俄罗斯方块 Tetris（4 星终局挑战）正在路上。在 GitHub Issues 跟进进度或认领实现。</p>
             <a href="https://github.com/wyf0931/oma-games/issues" target="_blank" rel="noopener" class="roadmap-link">
                 <span data-i18n="view_roadmap">VIEW ROADMAP</span>
                 <span>→</span>
@@ -1159,8 +1243,19 @@
                 tower_desc: '工业 dystopian 下落。摄像机平滑跟随，平台随机生成，死亡线追击节奏紧张。',
                 tag_camera: '摄像机跟随',
                 tag_parallax: '视差滚动',
+                breakout_desc: '霓虹紫青砖墙。向量反射物理，5 种道具（加宽 / 粘性 / 多球 / 激光 / 加速），粒子爆炸。',
+                tag_powerups: '道具系统',
+                '2048_desc': '经典暖色合并。二维数组滑动算法 + tile 平滑过渡动画，4×4 / 5×5 / 6×6 三档棋盘。',
+                tag_slide_merge: '滑动合并',
+                tag_css_transit: 'CSS 过渡',
+                gold_miner_desc: '卡通西部矿洞。摆锤物理钩爪，6 种物品（金块 / 钻石 / 石头 / 神秘袋），关卡推进。',
+                tag_pendulum: '摆锤物理',
+                tag_levels: '关卡推进',
+                gomoku_desc: '木质棋盘 15×15 五子棋。8 方向胜负判定 + 估值函数 AI（greedy / minimax），支持人机 / 双人。',
+                tag_eval_fn: '估值函数',
+                tag_minimax: 'MINIMAX',
                 roadmap_title: '更多游戏即将上线',
-                roadmap_desc: '2048 / 打砖块 / 黄金矿工 / 五子棋 / 俄罗斯方块 等已在路上。在 GitHub Issues 跟进进度或认领实现。',
+                roadmap_desc: '俄罗斯方块 Tetris（4 星终局挑战）正在路上。在 GitHub Issues 跟进进度或认领实现。',
                 view_roadmap: '查看路线图',
                 footer_note: 'VIBE CODING 出品'
             },
@@ -1201,8 +1296,19 @@
                 tower_desc: 'Industrial dystopian descent. Smooth camera follow, procedural platforms, deathline chase ratchets tension.',
                 tag_camera: 'CAMERA',
                 tag_parallax: 'PARALLAX',
+                breakout_desc: 'Neon purple/cyan brick wall. Vector reflection physics, 5 power-ups (wide / sticky / multi / laser / fast), particle explosions.',
+                tag_powerups: 'POWER-UPS',
+                '2048_desc': 'Classic warm-palette merge. 2D array slide algorithm + smooth tile transitions, 4×4 / 5×5 / 6×6 boards.',
+                tag_slide_merge: 'SLIDE MERGE',
+                tag_css_transit: 'CSS ANIM',
+                gold_miner_desc: 'Cartoon western mine. Pendulum-physics hook, 6 item types (gold / diamond / rock / mystery bag), level progression.',
+                tag_pendulum: 'PENDULUM',
+                tag_levels: 'LEVELS',
+                gomoku_desc: 'Wooden 15×15 board. 8-direction win detection + eval-function AI (greedy / minimax), supports vs AI and 2-player.',
+                tag_eval_fn: 'EVAL FN',
+                tag_minimax: 'MINIMAX',
                 roadmap_title: 'More Titles Coming',
-                roadmap_desc: '2048 / Breakout / Gold Miner / Gomoku / Tetris and more are on the way. Track progress or claim work via GitHub Issues.',
+                roadmap_desc: 'Tetris (4-star finale challenge) is on the way. Track progress or claim work via GitHub Issues.',
                 view_roadmap: 'VIEW ROADMAP',
                 footer_note: 'BUILT WITH VIBE CODING'
             }
