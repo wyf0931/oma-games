@@ -764,7 +764,33 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
         }
+
+        .title-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            line-height: 1.1;
+        }
+        .title-zh {
+            font-family: 'Rajdhani', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+        .title-zh:empty { display: none; }
+
+        .featured-title-zh {
+            font-family: 'Rajdhani', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .featured-title-zh:empty { display: none; }
 
         .card-arrow {
             color: var(--card-accent, var(--neon-cyan));
@@ -1119,6 +1145,7 @@
                 <div class="featured-content">
                     <div class="featured-tag" data-i18n="featured_tag">★ FLAGSHIP TITLE</div>
                     <h3 class="featured-title">TANK COMMAND</h3>
+                    <div class="featured-title-zh" data-i18n="title_tank">坦克大战</div>
                     <p class="featured-desc" data-i18n="tank_desc">军事 HUD 风格的经典坦克大战，行为树驱动的敌方 AI，可自定义敌机数量、威胁等级和武器系统。</p>
                     <div class="featured-meta">
                         <span data-i18n="tag_behavior_tree">BEHAVIOR TREE</span>
@@ -1147,7 +1174,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>SPACE INVADERS</span>
+                            <div class="title-stack">
+                                <span>SPACE INVADERS</span>
+                                <span class="title-zh" data-i18n="title_space_invaders">太空侵略者</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="si_desc">1978 经典之作。CRT 复古绿，敌方矩阵阵列移动，难度随消灭数递增。</p>
@@ -1167,7 +1197,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>PONG</span>
+                            <div class="title-stack">
+                                <span>PONG</span>
+                                <span class="title-zh" data-i18n="title_pong">双人乒乓球</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="pong_desc">1972 Atari 元祖。黑白极简，AI Lerp 追踪 + 角度反射公式。支持双人 / 人机。</p>
@@ -1187,7 +1220,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>T-REX RUN</span>
+                            <div class="title-stack">
+                                <span>T-REX RUN</span>
+                                <span class="title-zh" data-i18n="title_dino">小恐龙跑酷</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="dino_desc">致敬 Chrome 离线小恐龙。像素艺术，无限滚动地形，宽松碰撞箱带来好手感。</p>
@@ -1207,7 +1243,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>SNAKE</span>
+                            <div class="title-stack">
+                                <span>SNAKE</span>
+                                <span class="title-zh" data-i18n="title_snake">贪吃蛇</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="snake_desc">Neo-arcade 霓虹贪吃蛇。链表队列移动，固定 timestep 节奏，方向缓存防误操作。</p>
@@ -1227,7 +1266,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>MINESWEEPER</span>
+                            <div class="title-stack">
+                                <span>MINESWEEPER</span>
+                                <span class="title-zh" data-i18n="title_minesweeper">扫雷</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="mine_desc">Windows 95 怀旧。DOM grid 实现，Flood Fill 自动展开，首次点击安全保证。</p>
@@ -1247,7 +1289,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>TOWER CLIMB</span>
+                            <div class="title-stack">
+                                <span>TOWER CLIMB</span>
+                                <span class="title-zh" data-i18n="title_tower_climb">下 100 层</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="tower_desc">工业 dystopian 下落。摄像机平滑跟随，平台随机生成，死亡线追击节奏紧张。</p>
@@ -1267,7 +1312,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>BREAKOUT</span>
+                            <div class="title-stack">
+                                <span>BREAKOUT</span>
+                                <span class="title-zh" data-i18n="title_breakout">打砖块</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="breakout_desc">霓虹紫青砖墙。向量反射物理，5 种道具（加宽 / 粘性 / 多球 / 激光 / 加速），粒子爆炸。</p>
@@ -1287,7 +1335,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>2048</span>
+                            <div class="title-stack">
+                                <span>2048</span>
+                                <span class="title-zh" data-i18n="title_2048">数字合并</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="2048_desc">经典暖色合并。二维数组滑动算法 + tile 平滑过渡动画，4×4 / 5×5 / 6×6 三档棋盘。</p>
@@ -1307,7 +1358,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>GOLD MINER</span>
+                            <div class="title-stack">
+                                <span>GOLD MINER</span>
+                                <span class="title-zh" data-i18n="title_gold_miner">黄金矿工</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="gold_miner_desc">卡通西部矿洞。摆锤物理钩爪，6 种物品（金块 / 钻石 / 石头 / 神秘袋），关卡推进。</p>
@@ -1327,7 +1381,10 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">
-                            <span>GOMOKU</span>
+                            <div class="title-stack">
+                                <span>GOMOKU</span>
+                                <span class="title-zh" data-i18n="title_gomoku">五子棋</span>
+                            </div>
                             <span class="card-arrow">▶</span>
                         </div>
                         <p class="card-desc" data-i18n="gomoku_desc">木质棋盘 15×15 五子棋。8 方向胜负判定 + 估值函数 AI（greedy / minimax），支持人机 / 双人。</p>
@@ -1446,6 +1503,18 @@
                 featured: '特色推荐',
                 arcade: '街机',
                 tank_desc: '军事 HUD 风格的经典坦克大战，行为树驱动的敌方 AI，可自定义敌机数量、威胁等级和武器系统。',
+                title_tank: '坦克大战',
+                title_space_invaders: '太空侵略者',
+                title_pong: '双人乒乓球',
+                title_dino: '小恐龙跑酷',
+                title_snake: '贪吃蛇',
+                title_minesweeper: '扫雷',
+                title_tower_climb: '下 100 层',
+                title_breakout: '打砖块',
+                title_2048: '数字合并',
+                title_gold_miner: '黄金矿工',
+                title_gomoku: '五子棋',
+                title_tetris: '俄罗斯方块',
                 featured_tag: '★ 旗舰作品',
                 play: '开始游戏',
                 tag_behavior_tree: '行为树',
@@ -1502,6 +1571,18 @@
                 featured: 'FEATURED',
                 arcade: 'ARCADE',
                 tank_desc: 'Military HUD tank battle. Behavior-tree-driven enemy AI. Customize hostile count, threat level, and weapon systems.',
+                title_tank: '',
+                title_space_invaders: '',
+                title_pong: '',
+                title_dino: '',
+                title_snake: '',
+                title_minesweeper: '',
+                title_tower_climb: '',
+                title_breakout: '',
+                title_2048: '',
+                title_gold_miner: '',
+                title_gomoku: '',
+                title_tetris: '',
                 featured_tag: '★ FLAGSHIP TITLE',
                 play: 'PLAY',
                 tag_behavior_tree: 'BEHAVIOR TREE',
