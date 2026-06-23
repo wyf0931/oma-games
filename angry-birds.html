@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANGRY BIRDS — 愤怒的小鸟</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            --sky-top: #87ceeb;
+            --sky-bottom: #c8e8f5;
+            --ground: #7ac850;
+            --ground-dark: #5a9c3a;
+            --hill-far: #8fc6a8;
+            --hill-near: #6fb088;
+            --sling-wood: #6b3a1a;
+            --sling-wood-light: #8b5a2a;
+            --bird-red: #dd2222;
+            --bird-red-dark: #a01515;
+            --pig-green: #88dd44;
+            --pig-dark: #5aa830;
+
+            --bg-primary: #e8f4f8;
+            --bg-secondary: #d3e8f0;
+            --bg-card: #ffffff;
+            --text-primary: #1a2a3a;
+            --text-secondary: #4a5a6a;
+            --text-dim: #7a8a9a;
+            --border: #b8d0d8;
+            --border-strong: #88a8b8;
+            --accent: #dd2222;
+            --accent-strong: #a01515;
+            --accent-contrast: #ffffff;
+            --danger: #cc2222;
+            --success: #44aa44;
+            --warning: #f59e0b;
+        }
+
+        [data-theme='dark'] {
+            --sky-top: #1a2a3a;
+            --sky-bottom: #2a3a4a;
+            --ground: #3a2a1a;
+            --ground-dark: #2a1a0a;
+            --hill-far: #2a3a4a;
+            --hill-near: #1a2a3a;
+            --sling-wood: #3a2a1a;
+            --sling-wood-light: #5a3a2a;
+
+            --bg-primary: #0a1015;
+            --bg-secondary: #141a22;
+            --bg-card: #1a2230;
+            --text-primary: #e8f0f5;
+            --text-secondary: #a8b8c8;
+            --text-dim: #687888;
+            --border: #2a3540;
+            --border-strong: #3a4858;
+            --accent: #ff5555;
+            --accent-strong: #dd2222;
+            --accent-contrast: #1a2a3a;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 70px 20px 30px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #app {
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-strong);
+            border-radius: 12px;
+            box-shadow:
+                0 4px 0 var(--border),
+                0 10px 24px rgba(0, 0, 0, 0.15);
+            padding: 16px;
+            position: relative;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border: 2px solid var(--border-strong);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            font-family: 'Bangers', cursive;
+            letter-spacing: 2px;
+            font-size: 16px;
+        }
+
+        .hud-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .hud-value {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 22px;
+            text-shadow: 1px 1px 0 var(--border-strong);
+        }
+
+        .hud-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+        .hud-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid var(--border-strong);
+        }
+        .hud-dot.pig { background: var(--pig-green); }
+        .hud-dot.bird { background: var(--bird-red); }
+        .hud-dot.empty { background: transparent; }
+
+        canvas {
+            display: block;
+            background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+            border: 2px solid var(--border-strong);
+            border-radius: 8px;
+            cursor: crosshair;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-panel {
+            width: 280px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-strong);
+            border-radius: 12px;
+            box-shadow: 0 4px 0 var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-title {
+            font-family: 'Bangers', cursive;
+            font-size: 32px;
+            color: var(--accent);
+            letter-spacing: 3px;
+            text-align: center;
+            padding-bottom: 12px;
+            border-bottom: 2px dashed var(--border-strong);
+            text-shadow: 2px 2px 0 var(--border);
+        }
+
+        .config-group {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .config-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .oma-diff-btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            background: var(--bg-card);
+        }
+        .oma-diff-btn.active {
+            background: var(--accent);
+            color: var(--accent-contrast);
+            box-shadow: 0 2px 0 var(--accent-strong);
+        }
+
+        #btn-start {
+            padding: 14px;
+            font-family: 'Bangers', cursive;
+            font-size: 22px;
+            letter-spacing: 4px;
+            background: var(--accent);
+            color: var(--accent-contrast);
+            border: 2px solid var(--accent-strong);
+            border-radius: 8px;
+            box-shadow: 0 4px 0 var(--accent-strong);
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        #btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--accent-strong);
+        }
+        #btn-start:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--accent-strong);
+        }
+
+        #btn-start:disabled {
+            background: var(--bg-secondary);
+            color: var(--text-dim);
+            border-color: var(--border);
+            box-shadow: 0 4px 0 var(--border);
+            cursor: not-allowed;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            font-size: 12px;
+        }
+        .stat-grid .lbl { color: var(--text-secondary); }
+        .stat-grid .val { color: var(--accent); text-align: right; font-weight: 600; }
+
+        #controls-help {
+            font-size: 12px;
+            line-height: 2;
+            color: var(--text-secondary);
+            text-align: center;
+            padding-top: 12px;
+            border-top: 2px dashed var(--border-strong);
+        }
+
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-swatch {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: 1px solid var(--border-strong);
+        }
+        .legend-swatch.wood { background: #c08850; }
+        .legend-swatch.stone { background: #888; }
+        .legend-swatch.glass { background: #88ddff; opacity: 0.7; }
+        .legend-text {
+            flex: 1;
+            color: var(--text-primary);
+        }
+        .legend-hp {
+            color: var(--text-dim);
+            font-size: 11px;
+        }
+
+        .oma-key {
+            background: var(--bg-card);
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        /* === Unified game header theme overrides === */
+        :root {
+            --oma-header-bg: rgba(135, 206, 235, 0.85);
+            --oma-header-fg: #1a2a3a;
+            --oma-header-hover-bg: #dd2222;
+            --oma-header-hover-fg: #ffffff;
+            --oma-header-border: rgba(44, 95, 140, 0.4);
+            --oma-header-glow: rgba(221, 34, 34, 0.3);
+        }
+        [data-theme='dark'] {
+            --oma-header-bg: rgba(26, 42, 58, 0.85);
+            --oma-header-fg: #e8f0f5;
+            --oma-header-hover-bg: #ff5555;
+            --oma-header-hover-fg: #1a2a3a;
+            --oma-header-border: rgba(135, 206, 235, 0.4);
+            --oma-header-glow: rgba(255, 85, 85, 0.3);
+        }
+        .oma-game-header { font-family: 'Bangers', cursive; letter-spacing: 2px; }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; }
+            .config-panel { width: 100%; max-width: 700px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="game-panel">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="level">关卡</span>
+                    <span class="hud-value" id="level-display">1</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="pigs">小猪</span>
+                    <span class="hud-dots" id="pigs-dots"></span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="birds">小鸟</span>
+                    <span class="hud-dots" id="birds-dots"></span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="score">分数</span>
+                    <span class="hud-value" id="score">0</span>
+                </div>
+            </div>
+            <canvas id="canvas" width="1000" height="600"></canvas>
+        </div>
+
+        <div class="config-panel">
+            <div class="panel-title" data-i18n="title">ANGRY BIRDS</div>
+
+            <div class="config-group">
+                <label data-i18n="difficulty">难度</label>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner" data-i18n="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate" data-i18n="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced" data-i18n="advanced">高级</button>
+                </div>
+                <div class="hint" data-i18n="diff_hint">关卡数、小鸟数与材质复杂度</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="launch">▶ 发射！</span></button>
+
+            <div class="config-group">
+                <label data-i18n="materials">材质</label>
+                <div class="legend">
+                    <div class="legend-row">
+                        <span class="legend-swatch wood"></span>
+                        <span class="legend-text" data-i18n="mat_wood">木材</span>
+                        <span class="legend-hp">HP 25</span>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-swatch stone"></span>
+                        <span class="legend-text" data-i18n="mat_stone">石材</span>
+                        <span class="legend-hp">HP 80</span>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-swatch glass"></span>
+                        <span class="legend-text" data-i18n="mat_glass">玻璃</span>
+                        <span class="legend-hp">HP 8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <label data-i18n="stats">状态</label>
+                <div class="stat-grid">
+                    <span class="lbl" data-i18n="best_score">最高分</span>
+                    <span class="val" id="best-score">0</span>
+                    <span class="lbl" data-i18n="birds_remaining">剩余小鸟</span>
+                    <span class="val" id="birds-remaining">—</span>
+                    <span class="lbl" data-i18n="pigs_remaining">剩余小猪</span>
+                    <span class="val" id="pigs-remaining">—</span>
+                </div>
+            </div>
+
+            <div id="controls-help">
+                <span class="oma-key">←</span>
+                <span data-i18n="drag_hint">鼠标拖拽小鸟拉弹弓</span><br>
+                <span class="oma-key">↗</span>
+                <span data-i18n="release_hint">松开鼠标发射</span><br>
+                <span class="oma-key">R</span>
+                <span data-i18n="restart_hint">重玩</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+    <script src="../shared/oma-games.js"></script>
+    <script>
+        const { Engine, World, Bodies, Body, Events, Composite, Vector } = Matter;
+        const { i18n, theme, loop, fsm, DIFFICULTY, clamp } = OmaGames;
+
+        i18n.load({
+            zh: {
+                title: '愤怒的小鸟',
+                difficulty: '难度',
+                diff_hint: '关卡数、小鸟数与材质复杂度',
+                beginner: '初级',
+                intermediate: '中级',
+                advanced: '高级',
+                launch: '▶ 发射！',
+                materials: '材质',
+                mat_wood: '木材',
+                mat_stone: '石材',
+                mat_glass: '玻璃',
+                stats: '状态',
+                best_score: '最高分',
+                birds_remaining: '剩余小鸟',
+                pigs_remaining: '剩余小猪',
+                level: '关卡',
+                pigs: '小猪',
+                birds: '小鸟',
+                score: '分数',
+                drag_hint: '鼠标拖拽小鸟拉弹弓',
+                release_hint: '松开鼠标发射',
+                restart_hint: '重玩',
+                press_launch: '点击 [发射] 开始游戏',
+                victory: '通关成功！',
+                defeat: '小鸟用完了…',
+                press_retry: '按 [R] 或点击 [发射] 重玩',
+                level_clear: '关卡 %d 通过！',
+                next_level: '准备下一关…'
+            },
+            en: {
+                title: 'ANGRY BIRDS',
+                difficulty: 'Difficulty',
+                diff_hint: 'Levels, birds, and material complexity',
+                beginner: 'Easy',
+                intermediate: 'Medium',
+                advanced: 'Hard',
+                launch: '▶ LAUNCH!',
+                materials: 'Materials',
+                mat_wood: 'Wood',
+                mat_stone: 'Stone',
+                mat_glass: 'Glass',
+                stats: 'Status',
+                best_score: 'Best Score',
+                birds_remaining: 'Birds Left',
+                pigs_remaining: 'Pigs Left',
+                level: 'Level',
+                pigs: 'Pigs',
+                birds: 'Birds',
+                score: 'Score',
+                drag_hint: 'Drag bird back with mouse',
+                release_hint: 'Release to launch',
+                restart_hint: 'Retry',
+                press_launch: 'CLICK [LAUNCH] TO START',
+                victory: 'VICTORY!',
+                defeat: 'OUT OF BIRDS...',
+                press_retry: 'PRESS [R] OR CLICK [LAUNCH] TO RETRY',
+                level_clear: 'LEVEL %d CLEAR!',
+                next_level: 'PREPARING NEXT LEVEL...'
+            }
+        });
+        theme.init();
+
+        OmaGames.ui.header();
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        // DOM refs
+        const levelDisplayEl = document.getElementById('level-display');
+        const pigsDotsEl = document.getElementById('pigs-dots');
+        const birdsDotsEl = document.getElementById('birds-dots');
+        const scoreEl = document.getElementById('score');
+        const bestScoreEl = document.getElementById('best-score');
+        const birdsRemainingEl = document.getElementById('birds-remaining');
+        const pigsRemainingEl = document.getElementById('pigs-remaining');
+        const btnStart = document.getElementById('btn-start');
+
+        // ===== Constants =====
+        const GROUND_Y = H - 40;
+        const SLING_X = 150;
+        const SLING_Y = GROUND_Y - 100;
+        const SLING_MAX_RANGE = 110;
+        const BIRD_RADIUS = 18;
+        const LAUNCH_POWER = 0.22;
+        const NEXT_BIRD_DELAY = 2500;
+        const SETTLE_VELOCITY = 0.5;
+        const SETTLE_TIME = 1500;
+
+        // ===== Materials =====
+        const MATERIALS = {
+            wood:  { density: 0.002, friction: 0.6,  restitution: 0.2,  hp: 25, color: '#c08850', colorDark: '#8a5a30', label: 'wood' },
+            stone: { density: 0.006, friction: 0.9,  restitution: 0.05, hp: 80, color: '#888888', colorDark: '#555555', label: 'stone' },
+            glass: { density: 0.001, friction: 0.2,  restitution: 0.5,  hp: 8,  color: '#88ddff', colorDark: '#4a9ec0', label: 'glass' }
+        };
+
+        // ===== Difficulty params =====
+        const DIFF_PARAMS = {
+            beginner:     { levelCount: 3, birdsPerLevel: 3 },
+            intermediate: { levelCount: 4, birdsPerLevel: 4 },
+            advanced:     { levelCount: 5, birdsPerLevel: 3 }
+        };
+
+        let config = { difficulty: 'beginner' };
+        let bestScore = parseInt(localStorage.getItem('omA_games_angry_best') || '0', 10) || 0;
+        bestScoreEl.textContent = bestScore;
+
+        document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                config.difficulty = btn.dataset.level;
+            });
+        });
+        btnStart.addEventListener('click', () => game.start());
+
+        // ===== Engine setup =====
+        let engine, world;
+        function initEngine() {
+            if (engine) {
+                Composite.clear(world, false);
+                Engine.clear(engine);
+            }
+            engine = Engine.create();
+            world = engine.world;
+            engine.gravity.y = 1;
+        }
+
+        // ===== Level definitions (relative to GROUND_Y) =====
+        // Each level: structures (material + rect) + pigs (position + radius)
+        const G = GROUND_Y;
+        const LEVEL_TEMPLATES = [
+            // Level 1 — simple wooden hut
+            {
+                birds: 3,
+                structures: [
+                    { mat: 'wood', x: 600, y: G - 50,  w: 14, h: 100 },
+                    { mat: 'wood', x: 720, y: G - 50,  w: 14, h: 100 },
+                    { mat: 'wood', x: 660, y: G - 105, w: 134, h: 14 }
+                ],
+                pigs: [
+                    { x: 660, y: G - 130, r: 16 },
+                    { x: 850, y: G - 16,  r: 16 }
+                ]
+            },
+            // Level 2 — wood + glass tower
+            {
+                birds: 3,
+                structures: [
+                    { mat: 'wood',  x: 580, y: G - 60,  w: 14, h: 120 },
+                    { mat: 'wood',  x: 700, y: G - 60,  w: 14, h: 120 },
+                    { mat: 'glass', x: 640, y: G - 125, w: 134, h: 14 },
+                    { mat: 'wood',  x: 800, y: G - 50,  w: 14, h: 100 },
+                    { mat: 'wood',  x: 880, y: G - 50,  w: 14, h: 100 },
+                    { mat: 'glass', x: 840, y: G - 105, w: 94,  h: 14 }
+                ],
+                pigs: [
+                    { x: 640, y: G - 145, r: 16 },
+                    { x: 840, y: G - 125, r: 16 },
+                    { x: 950, y: G - 16,  r: 16 }
+                ]
+            },
+            // Level 3 — stone fortress
+            {
+                birds: 3,
+                structures: [
+                    { mat: 'stone', x: 580, y: G - 60,  w: 18, h: 120 },
+                    { mat: 'stone', x: 720, y: G - 60,  w: 18, h: 120 },
+                    { mat: 'stone', x: 650, y: G - 125, w: 158, h: 16 },
+                    { mat: 'wood',  x: 650, y: G - 155, w: 14, h: 50 },
+                    { mat: 'wood',  x: 650, y: G - 200, w: 60, h: 14 },
+                    { mat: 'glass', x: 820, y: G - 50,  w: 14, h: 100 },
+                    { mat: 'glass', x: 900, y: G - 50,  w: 14, h: 100 },
+                    { mat: 'stone', x: 860, y: G - 105, w: 94,  h: 14 }
+                ],
+                pigs: [
+                    { x: 650, y: G - 230, r: 16 },
+                    { x: 650, y: G - 145, r: 14 },
+                    { x: 860, y: G - 125, r: 16 }
+                ]
+            },
+            // Level 4 — multi-tier
+            {
+                birds: 4,
+                structures: [
+                    { mat: 'stone', x: 520, y: G - 50,  w: 18, h: 100 },
+                    { mat: 'stone', x: 620, y: G - 50,  w: 18, h: 100 },
+                    { mat: 'wood',  x: 570, y: G - 105, w: 118, h: 14 },
+                    { mat: 'glass', x: 540, y: G - 165, w: 12, h: 100 },
+                    { mat: 'glass', x: 600, y: G - 165, w: 12, h: 100 },
+                    { mat: 'wood',  x: 570, y: G - 220, w: 84,  h: 12 },
+                    { mat: 'stone', x: 740, y: G - 50,  w: 18, h: 100 },
+                    { mat: 'stone', x: 840, y: G - 50,  w: 18, h: 100 },
+                    { mat: 'stone', x: 790, y: G - 105, w: 118, h: 16 },
+                    { mat: 'wood',  x: 790, y: G - 135, w: 12, h: 60 },
+                    { mat: 'glass', x: 790, y: G - 200, w: 50, h: 12 }
+                ],
+                pigs: [
+                    { x: 570, y: G - 240, r: 14 },
+                    { x: 570, y: G - 130, r: 16 },
+                    { x: 790, y: G - 130, r: 14 },
+                    { x: 920, y: G - 16,  r: 16 }
+                ]
+            },
+            // Level 5 — castle
+            {
+                birds: 3,
+                structures: [
+                    { mat: 'stone', x: 500, y: G - 70,  w: 22, h: 140 },
+                    { mat: 'stone', x: 620, y: G - 70,  w: 22, h: 140 },
+                    { mat: 'stone', x: 560, y: G - 145, w: 144, h: 18 },
+                    { mat: 'glass', x: 540, y: G - 200, w: 12, h: 100 },
+                    { mat: 'glass', x: 580, y: G - 200, w: 12, h: 100 },
+                    { mat: 'wood',  x: 560, y: G - 255, w: 70,  h: 14 },
+                    { mat: 'stone', x: 760, y: G - 60,  w: 18, h: 120 },
+                    { mat: 'stone', x: 860, y: G - 60,  w: 18, h: 120 },
+                    { mat: 'wood',  x: 810, y: G - 125, w: 118, h: 14 },
+                    { mat: 'glass', x: 810, y: G - 155, w: 12, h: 60 },
+                    { mat: 'wood',  x: 810, y: G - 195, w: 40, h: 10 }
+                ],
+                pigs: [
+                    { x: 560, y: G - 270, r: 14 },
+                    { x: 560, y: G - 165, r: 14 },
+                    { x: 810, y: G - 210, r: 14 },
+                    { x: 940, y: G - 16,  r: 16 }
+                ]
+            }
+        ];
+
+        function buildLevels(difficulty) {
+            const params = DIFF_PARAMS[difficulty];
+            const count = params.levelCount;
+            const result = [];
+            for (let i = 0; i < count; i++) {
+                const tpl = LEVEL_TEMPLATES[i % LEVEL_TEMPLATES.length];
+                result.push({
+                    birds: tpl.birds,
+                    structures: tpl.structures.map(s => ({ ...s })),
+                    pigs: tpl.pigs.map(p => ({ ...p }))
+                });
+            }
+            return result;
+        }
+
+        // ===== State =====
+        const machine = fsm({
+            MENU:     { start: 'PLAYING' },
+            PLAYING:  { win: 'WIN', lose: 'LOST', next: 'PLAYING' },
+            WIN:      { restart: 'PLAYING', start: 'PLAYING' },
+            LOST:     { restart: 'PLAYING', start: 'PLAYING' }
+        }, 'MENU');
+
+        const game = {
+            state: 'MENU',
+            levels: [],
+            levelIndex: 0,
+            score: 0,
+            birdsLeft: 0,
+            currentBird: null,
+            dragging: false,
+            launched: false,
+            settleTimer: 0,
+            pigs: [],
+            particles: [],
+            shake: 0,
+            flashText: null,
+            flashTimer: 0
+        };
+
+        // ===== Mouse helpers =====
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const sx = canvas.width / rect.width;
+            const sy = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * sx,
+                y: (e.clientY - rect.top) * sy
+            };
+        }
+
+        // ===== Build level =====
+        function loadLevel(idx) {
+            const lvl = game.levels[idx];
+            if (!lvl) return;
+
+            initEngine();
+
+            // Ground
+            const ground = Bodies.rectangle(W / 2, GROUND_Y + 20, W + 100, 40, {
+                isStatic: true,
+                friction: 0.9,
+                gameData: { type: 'ground' }
+            });
+            // Side walls to prevent things from leaving the world horizontally
+            const leftWall = Bodies.rectangle(-20, H / 2, 40, H * 2, { isStatic: true, gameData: { type: 'wall' } });
+            const rightWall = Bodies.rectangle(W + 20, H / 2, 40, H * 2, { isStatic: true, gameData: { type: 'wall' } });
+            Composite.add(world, [ground, leftWall, rightWall]);
+
+            // Structures
+            lvl.structures.forEach(s => {
+                const mat = MATERIALS[s.mat];
+                const body = Bodies.rectangle(s.x, s.y, s.w, s.h, {
+                    density: mat.density,
+                    friction: mat.friction,
+                    restitution: mat.restitution,
+                    gameData: {
+                        type: 'block',
+                        material: s.mat,
+                        hp: mat.hp,
+                        maxHp: mat.hp,
+                        w: s.w,
+                        h: s.h
+                    }
+                });
+                Composite.add(world, body);
+            });
+
+            // Pigs
+            game.pigs = [];
+            lvl.pigs.forEach(p => {
+                const body = Bodies.circle(p.x, p.y, p.r, {
+                    density: 0.002,
+                    friction: 0.5,
+                    restitution: 0.2,
+                    gameData: {
+                        type: 'pig',
+                        hp: 30,
+                        maxHp: 30,
+                        r: p.r
+                    }
+                });
+                Composite.add(world, body);
+                game.pigs.push(body);
+            });
+
+            game.birdsLeft = lvl.birds;
+            game.launched = false;
+            game.dragging = false;
+            game.settleTimer = 0;
+            game.particles = [];
+            prepareNextBird();
+        }
+
+        function prepareNextBird() {
+            if (game.birdsLeft <= 0) {
+                // Check if pigs all dead → handled in update
+                return;
+            }
+            const bird = Bodies.circle(SLING_X, SLING_Y, BIRD_RADIUS, {
+                isStatic: true,
+                density: 0.005,
+                friction: 0.5,
+                restitution: 0.4,
+                gameData: {
+                    type: 'bird',
+                    r: BIRD_RADIUS,
+                    hp: 100
+                }
+            });
+            Composite.add(world, bird);
+            game.currentBird = bird;
+            game.launched = false;
+            game.dragging = false;
+            game.settleTimer = 0;
+        }
+
+        // ===== Collision handling =====
+        Events.on(engine, 'collisionStart', event => {
+            for (const pair of event.pairs) {
+                const { bodyA, bodyB } = pair;
+                const speedA = bodyA.speed || 0;
+                const speedB = bodyB.speed || 0;
+                const impact = speedA + speedB;
+                if (impact < 4) continue;
+
+                applyDamage(bodyA, impact);
+                applyDamage(bodyB, impact);
+
+                // Particles on impact
+                if (impact > 8) {
+                    const pos = pair.collision && pair.collision.supports && pair.collision.supports[0]
+                        ? pair.collision.supports[0]
+                        : { x: (bodyA.position.x + bodyB.position.x) / 2, y: (bodyA.position.y + bodyB.position.y) / 2 };
+                    spawnImpactParticles(pos.x, pos.y, bodyA);
+                    spawnImpactParticles(pos.x, pos.y, bodyB);
+                    game.shake = Math.min(8, game.shake + impact * 0.15);
+                }
+            }
+        });
+
+        function applyDamage(body, impact) {
+            if (!body.gameData) return;
+            if (body.gameData.hp === undefined) return;
+            // Birds and ground don't get damaged by impact
+            if (body.gameData.type === 'bird' || body.gameData.type === 'ground' || body.gameData.type === 'wall') return;
+
+            const dmg = impact * 1.2;
+            body.gameData.hp -= dmg;
+
+            if (body.gameData.hp <= 0) {
+                // Drop particles for destroyed body
+                spawnDestroyParticles(body);
+                if (body.gameData.type === 'pig') {
+                    game.score += 500;
+                    game.pigs = game.pigs.filter(p => p !== body);
+                } else {
+                    game.score += 50;
+                }
+                Composite.remove(world, body);
+            }
+        }
+
+        function spawnDestroyParticles(body) {
+            const gd = body.gameData;
+            const pos = body.position;
+            let color, count;
+            if (gd.type === 'pig') {
+                color = '#88dd44';
+                count = 18;
+            } else {
+                const mat = MATERIALS[gd.material];
+                color = mat.color;
+                count = 12;
+            }
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 4;
+                game.particles.push({
+                    x: pos.x + (Math.random() - 0.5) * 20,
+                    y: pos.y + (Math.random() - 0.5) * 20,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    life: 60 + Math.random() * 30,
+                    maxLife: 90,
+                    size: 3 + Math.random() * 4,
+                    color: color,
+                    shape: gd.type === 'pig' ? 'circle' : 'square',
+                    rot: Math.random() * Math.PI,
+                    vrot: (Math.random() - 0.5) * 0.3
+                });
+            }
+        }
+
+        function spawnImpactParticles(x, y, body) {
+            if (!body.gameData) return;
+            if (body.gameData.type === 'ground' || body.gameData.type === 'wall' || body.gameData.type === 'bird') return;
+            let color = '#cccccc';
+            if (body.gameData.material) {
+                color = MATERIALS[body.gameData.material].color;
+            } else if (body.gameData.type === 'pig') {
+                color = '#88dd44';
+            }
+            for (let i = 0; i < 4; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 2;
+                game.particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1,
+                    life: 30 + Math.random() * 20,
+                    maxLife: 50,
+                    size: 2 + Math.random() * 2,
+                    color: color,
+                    shape: 'square',
+                    rot: 0,
+                    vrot: 0
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = game.particles.length - 1; i >= 0; i--) {
+                const p = game.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.25;
+                p.vx *= 0.99;
+                p.rot += p.vrot;
+                p.life--;
+                if (p.life <= 0 || p.y > H) {
+                    game.particles.splice(i, 1);
+                }
+            }
+        }
+
+        // ===== Mouse interaction =====
+        canvas.addEventListener('mousedown', e => {
+            if (machine.current !== 'PLAYING' || !game.currentBird || game.launched) return;
+            const { x, y } = getMousePos(e);
+            const bird = game.currentBird;
+            const dist = Math.hypot(x - bird.position.x, y - bird.position.y);
+            if (dist < 40) {
+                game.dragging = true;
+            }
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (!game.dragging || !game.currentBird) return;
+            const { x, y } = getMousePos(e);
+            let dx = x - SLING_X;
+            let dy = y - SLING_Y;
+            // Restrict to backward pull (bird should be on left/lower side of sling)
+            if (dx > 30) dx = 30;
+            const dist = Math.hypot(dx, dy);
+            if (dist > SLING_MAX_RANGE) {
+                dx = dx / dist * SLING_MAX_RANGE;
+                dy = dy / dist * SLING_MAX_RANGE;
+            }
+            Body.setPosition(game.currentBird, { x: SLING_X + dx, y: SLING_Y + dy });
+            Body.setVelocity(game.currentBird, { x: 0, y: 0 });
+            Body.setAngularVelocity(game.currentBird, 0);
+        });
+
+        canvas.addEventListener('mouseup', e => {
+            if (!game.dragging || !game.currentBird) return;
+            game.dragging = false;
+            const bird = game.currentBird;
+            const dx = SLING_X - bird.position.x;
+            const dy = SLING_Y - bird.position.y;
+            const pullDist = Math.hypot(dx, dy);
+            if (pullDist < 15) {
+                // Too small a pull, snap back
+                Body.setPosition(bird, { x: SLING_X, y: SLING_Y });
+                return;
+            }
+            Body.setStatic(bird, false);
+            Body.setVelocity(bird, { x: dx * LAUNCH_POWER, y: dy * LAUNCH_POWER });
+            Body.setAngularVelocity(bird, 0.1);
+            game.launched = true;
+            game.birdsLeft--;
+            game.settleTimer = 0;
+        });
+
+        canvas.addEventListener('mouseleave', e => {
+            if (game.dragging) {
+                // cancel drag
+                game.dragging = false;
+                if (game.currentBird) {
+                    Body.setPosition(game.currentBird, { x: SLING_X, y: SLING_Y });
+                }
+            }
+        });
+
+        // ===== Update =====
+        function update(dt) {
+            // Keyboard: restart
+            if (machine.current === 'WIN' || machine.current === 'LOST') {
+                if (OmaGamesInputState.restart) {
+                    OmaGamesInputState.restart = false;
+                    startGame();
+                }
+            }
+
+            if (machine.current !== 'PLAYING') return;
+
+            // Step physics with fixed 16.67ms timestep
+            Engine.update(engine, 1000 / 60);
+
+            // Update particles
+            updateParticles();
+
+            // Update shake decay
+            if (game.shake > 0) game.shake = Math.max(0, game.shake - 0.5);
+            if (game.flashTimer > 0) game.flashTimer--;
+
+            // Check launched bird status
+            if (game.launched && game.currentBird) {
+                const v = game.currentBird.velocity;
+                const speed = Math.hypot(v.x, v.y);
+                // off screen
+                if (game.currentBird.position.x > W + 50 ||
+                    game.currentBird.position.y > H + 50 ||
+                    game.currentBird.position.x < -50) {
+                    Composite.remove(world, game.currentBird);
+                    game.currentBird = null;
+                    game.launched = false;
+                    scheduleNextBird();
+                } else if (speed < SETTLE_VELOCITY) {
+                    game.settleTimer += dt;
+                    if (game.settleTimer > SETTLE_TIME) {
+                        Composite.remove(world, game.currentBird);
+                        game.currentBird = null;
+                        game.launched = false;
+                        scheduleNextBird();
+                    }
+                } else {
+                    game.settleTimer = 0;
+                }
+            }
+
+            // Check pigs all dead
+            if (game.pigs.length === 0) {
+                // Level cleared
+                game.score += game.birdsLeft * 1000;
+                showFlash(i18n.t('level_clear').replace('%d', String(game.levelIndex + 1)), 90);
+                if (game.levelIndex + 1 < game.levels.length) {
+                    game.levelIndex++;
+                    setTimeout(() => {
+                        if (machine.current === 'PLAYING') {
+                            loadLevel(game.levelIndex);
+                            updateHud();
+                        }
+                    }, 1500);
+                } else {
+                    // All levels cleared
+                    machine.transition('win');
+                    saveBest();
+                    btnStart.disabled = false;
+                }
+            } else if (game.birdsLeft === 0 && !game.currentBird && !game.launched && game.particles.length === 0) {
+                // Lost
+                machine.transition('lose');
+                saveBest();
+                btnStart.disabled = false;
+            }
+
+            updateHud();
+        }
+
+        // simple keyboard restart
+        const OmaGamesInputState = { restart: false };
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                if (machine.current === 'WIN' || machine.current === 'LOST') {
+                    OmaGamesInputState.restart = true;
+                }
+            }
+        });
+
+        function scheduleNextBird() {
+            if (game.birdsLeft > 0) {
+                setTimeout(() => {
+                    if (machine.current === 'PLAYING') prepareNextBird();
+                }, NEXT_BIRD_DELAY);
+            }
+        }
+
+        function saveBest() {
+            if (game.score > bestScore) {
+                bestScore = game.score;
+                localStorage.setItem('omA_games_angry_best', String(bestScore));
+                bestScoreEl.textContent = bestScore;
+            }
+        }
+
+        function showFlash(text, frames) {
+            game.flashText = text;
+            game.flashTimer = frames;
+        }
+
+        function updateHud() {
+            levelDisplayEl.textContent = String(game.levelIndex + 1);
+            scoreEl.textContent = game.score;
+            birdsRemainingEl.textContent = game.birdsLeft + (game.currentBird ? 1 : 0);
+            pigsRemainingEl.textContent = game.pigs.length;
+
+            // Dots
+            const totalPigs = game.levels[game.levelIndex]
+                ? game.levels[game.levelIndex].pigs.length
+                : 0;
+            const pigsHtml = [];
+            for (let i = 0; i < totalPigs; i++) {
+                pigsHtml.push(`<span class="hud-dot ${i < game.pigs.length ? 'pig' : 'empty'}"></span>`);
+            }
+            pigsDotsEl.innerHTML = pigsHtml.join('');
+
+            const totalBirds = game.levels[game.levelIndex]
+                ? game.levels[game.levelIndex].birds
+                : 0;
+            const birdsRemaining = game.birdsLeft + (game.currentBird ? 1 : 0);
+            const birdsHtml = [];
+            for (let i = 0; i < totalBirds; i++) {
+                birdsHtml.push(`<span class="hud-dot ${i < birdsRemaining ? 'bird' : 'empty'}"></span>`);
+            }
+            birdsDotsEl.innerHTML = birdsHtml.join('');
+        }
+
+        function startGame() {
+            game.levels = buildLevels(config.difficulty);
+            game.levelIndex = 0;
+            game.score = 0;
+            machine.set('PLAYING');
+            if (!engine || machine.current !== 'PLAYING') {
+                machine.set('PLAYING');
+            }
+            loadLevel(0);
+            updateHud();
+            btnStart.disabled = true;
+        }
+        game.start = startGame;
+
+        // ===== Drawing =====
+        function drawAll() {
+            // Sky gradient is via CSS background; clear to transparent-ish base color
+            ctx.clearRect(0, 0, W, H);
+
+            // Apply shake
+            ctx.save();
+            if (game.shake > 0) {
+                ctx.translate(
+                    (Math.random() - 0.5) * game.shake,
+                    (Math.random() - 0.5) * game.shake
+                );
+            }
+
+            drawSky();
+            drawHills();
+            drawGround();
+            drawSlingshotBack();
+            drawBlocks();
+            drawPigs();
+            drawBird();
+            drawTrajectory();
+            drawSlingshotFront();
+            drawParticles();
+
+            ctx.restore();
+
+            // Overlay states
+            if (machine.current === 'MENU') {
+                drawMenuOverlay();
+            } else if (machine.current === 'WIN') {
+                drawWinOverlay();
+            } else if (machine.current === 'LOST') {
+                drawLostOverlay();
+            }
+
+            // Flash text
+            if (game.flashTimer > 0 && game.flashText) {
+                const alpha = Math.min(1, game.flashTimer / 30);
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
+                ctx.lineWidth = 4;
+                ctx.font = 'bold 48px "Bangers", cursive';
+                ctx.textAlign = 'center';
+                ctx.strokeText(game.flashText, W / 2, H / 2 - 50);
+                ctx.fillText(game.flashText, W / 2, H / 2 - 50);
+                ctx.textAlign = 'start';
+            }
+        }
+
+        function drawSky() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const grad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+            if (isDark) {
+                grad.addColorStop(0, '#1a2a3a');
+                grad.addColorStop(1, '#3a4a5a');
+            } else {
+                grad.addColorStop(0, '#87ceeb');
+                grad.addColorStop(1, '#c8e8f5');
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, GROUND_Y);
+
+            // Sun/Moon
+            if (isDark) {
+                ctx.fillStyle = '#f0e8d0';
+                ctx.beginPath();
+                ctx.arc(W - 120, 90, 35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.beginPath();
+                ctx.arc(W - 105, 80, 30, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillStyle = '#fff8b0';
+                ctx.shadowColor = '#ffeb3b';
+                ctx.shadowBlur = 30;
+                ctx.beginPath();
+                ctx.arc(W - 120, 90, 35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            // Clouds (light theme only)
+            if (!isDark) {
+                drawCloud(150, 80, 0.8);
+                drawCloud(450, 60, 1);
+                drawCloud(700, 100, 0.7);
+            }
+        }
+
+        function drawCloud(x, y, scale) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.beginPath();
+            ctx.arc(x, y, 18 * scale, 0, Math.PI * 2);
+            ctx.arc(x + 22 * scale, y - 5 * scale, 22 * scale, 0, Math.PI * 2);
+            ctx.arc(x + 45 * scale, y, 18 * scale, 0, Math.PI * 2);
+            ctx.arc(x + 22 * scale, y + 8 * scale, 20 * scale, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawHills() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            // Far hills
+            ctx.fillStyle = isDark ? '#2a3a4a' : '#8fc6a8';
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(0, GROUND_Y - 80);
+            ctx.quadraticCurveTo(150, GROUND_Y - 160, 300, GROUND_Y - 80);
+            ctx.quadraticCurveTo(450, GROUND_Y - 140, 600, GROUND_Y - 90);
+            ctx.quadraticCurveTo(800, GROUND_Y - 170, 1000, GROUND_Y - 80);
+            ctx.lineTo(1000, GROUND_Y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Near hills
+            ctx.fillStyle = isDark ? '#1a2a3a' : '#6fb088';
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(0, GROUND_Y - 40);
+            ctx.quadraticCurveTo(200, GROUND_Y - 100, 400, GROUND_Y - 50);
+            ctx.quadraticCurveTo(600, GROUND_Y - 110, 800, GROUND_Y - 40);
+            ctx.quadraticCurveTo(900, GROUND_Y - 70, 1000, GROUND_Y - 30);
+            ctx.lineTo(1000, GROUND_Y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawGround() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const grad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+            if (isDark) {
+                grad.addColorStop(0, '#3a2a1a');
+                grad.addColorStop(1, '#2a1a0a');
+            } else {
+                grad.addColorStop(0, '#7ac850');
+                grad.addColorStop(1, '#5a9c3a');
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+            // Grass tufts (light theme)
+            if (!isDark) {
+                ctx.fillStyle = '#5a9c3a';
+                for (let x = 0; x < W; x += 8) {
+                    const h = 3 + Math.sin(x * 0.5) * 2;
+                    ctx.fillRect(x, GROUND_Y - h, 2, h);
+                }
+            }
+        }
+
+        function drawSlingshotBack() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const color = isDark ? '#3a2a1a' : '#6b3a1a';
+            // Back fork (drawn first, bird appears in front)
+            ctx.fillStyle = color;
+            ctx.strokeStyle = isDark ? '#2a1a0a' : '#4a2a0a';
+            ctx.lineWidth = 2;
+
+            // Trunk
+            ctx.fillRect(SLING_X - 10, SLING_Y + 10, 20, GROUND_Y - SLING_Y - 10);
+            ctx.strokeRect(SLING_X - 10, SLING_Y + 10, 20, GROUND_Y - SLING_Y - 10);
+
+            // Back fork
+            ctx.beginPath();
+            ctx.moveTo(SLING_X - 4, SLING_Y + 15);
+            ctx.lineTo(SLING_X - 22, SLING_Y - 12);
+            ctx.lineTo(SLING_X - 14, SLING_Y - 16);
+            ctx.lineTo(SLING_X + 4, SLING_Y + 8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function drawSlingshotFront() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const color = isDark ? '#5a3a2a' : '#8b5a2a';
+            ctx.fillStyle = color;
+            ctx.strokeStyle = isDark ? '#3a2a1a' : '#6b3a1a';
+            ctx.lineWidth = 2;
+
+            // Front fork
+            ctx.beginPath();
+            ctx.moveTo(SLING_X + 4, SLING_Y + 15);
+            ctx.lineTo(SLING_X + 22, SLING_Y - 12);
+            ctx.lineTo(SLING_X + 14, SLING_Y - 16);
+            ctx.lineTo(SLING_X - 4, SLING_Y + 8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Rubber band — if dragging
+            if (game.dragging && game.currentBird) {
+                ctx.strokeStyle = '#3a1a0a';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(SLING_X - 16, SLING_Y - 14);
+                ctx.lineTo(game.currentBird.position.x - 8, game.currentBird.position.y);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(SLING_X + 16, SLING_Y - 14);
+                ctx.lineTo(game.currentBird.position.x + 8, game.currentBird.position.y);
+                ctx.stroke();
+            }
+        }
+
+        function drawTrajectory() {
+            if (!game.dragging || !game.currentBird) return;
+            const bird = game.currentBird;
+            const dx = SLING_X - bird.position.x;
+            const dy = SLING_Y - bird.position.y;
+            const vx = dx * LAUNCH_POWER;
+            const vy = dy * LAUNCH_POWER;
+            const g = 1; // matches engine.gravity.y
+
+            ctx.save();
+            ctx.setLineDash([5, 8]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let px = bird.position.x;
+            let py = bird.position.y;
+            ctx.moveTo(px, py);
+            for (let t = 1; t < 80; t++) {
+                px += vx;
+                py += vy + 0.5 * g * t;
+                if (py > GROUND_Y - 5 || px > W + 50 || px < -50) break;
+                if (t % 2 === 0) ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Dots
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            px = bird.position.x;
+            py = bird.position.y;
+            for (let t = 1; t < 80; t++) {
+                px += vx;
+                py += vy + 0.5 * g * t;
+                if (py > GROUND_Y - 5 || px > W + 50 || px < -50) break;
+                if (t % 8 === 0) {
+                    ctx.beginPath();
+                    ctx.arc(px, py, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawBlocks() {
+            const bodies = Composite.allBodies(world);
+            for (const body of bodies) {
+                const gd = body.gameData;
+                if (!gd) continue;
+                if (gd.type !== 'block') continue;
+                drawBlock(body);
+            }
+        }
+
+        function drawBlock(body) {
+            const gd = body.gameData;
+            const mat = MATERIALS[gd.material];
+            const w = gd.w;
+            const h = gd.h;
+
+            ctx.save();
+            ctx.translate(body.position.x, body.position.y);
+            ctx.rotate(body.angle);
+
+            const hpRatio = clamp(gd.hp / gd.maxHp, 0, 1);
+
+            if (gd.material === 'glass') {
+                // Glass: translucent with highlights
+                ctx.fillStyle = mat.color;
+                ctx.globalAlpha = 0.55 + 0.35 * hpRatio;
+                ctx.fillRect(-w / 2, -h / 2, w, h);
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = mat.colorDark;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(-w / 2, -h / 2, w, h);
+                // Highlights
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-w / 2 + 3, -h / 2 + 3);
+                ctx.lineTo(-w / 2 + 3, h / 2 - 3);
+                ctx.stroke();
+                if (hpRatio < 0.5) {
+                    // Cracks
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(-w / 4, -h / 2);
+                    ctx.lineTo(0, 0);
+                    ctx.lineTo(w / 4, h / 2);
+                    ctx.moveTo(0, -h / 4);
+                    ctx.lineTo(w / 2, h / 4);
+                    ctx.stroke();
+                }
+            } else if (gd.material === 'wood') {
+                // Wood: base color with grain lines
+                ctx.fillStyle = mat.color;
+                ctx.fillRect(-w / 2, -h / 2, w, h);
+                // Darken edges
+                ctx.fillStyle = mat.colorDark;
+                ctx.fillRect(-w / 2, h / 2 - 2, w, 2);
+                ctx.fillRect(-w / 2, -h / 2, w, 2);
+                ctx.fillRect(-w / 2, -h / 2, 2, h);
+                ctx.fillRect(w / 2 - 2, -h / 2, 2, h);
+                // Grain lines
+                ctx.strokeStyle = mat.colorDark;
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.5;
+                const isHorizontal = w > h;
+                if (isHorizontal) {
+                    for (let g = -h / 2 + 4; g < h / 2 - 2; g += 5) {
+                        ctx.beginPath();
+                        ctx.moveTo(-w / 2 + 2, g);
+                        ctx.lineTo(w / 2 - 2, g);
+                        ctx.stroke();
+                    }
+                } else {
+                    for (let g = -w / 2 + 4; g < w / 2 - 2; g += 5) {
+                        ctx.beginPath();
+                        ctx.moveTo(g, -h / 2 + 2);
+                        ctx.lineTo(g, h / 2 - 2);
+                        ctx.stroke();
+                    }
+                }
+                ctx.globalAlpha = 1;
+                // Damage cracks
+                if (hpRatio < 0.6) {
+                    ctx.strokeStyle = '#4a2a0a';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-w / 4, -h / 4);
+                    ctx.lineTo(w / 4, h / 4);
+                    ctx.moveTo(0, -h / 3);
+                    ctx.lineTo(w / 6, 0);
+                    ctx.stroke();
+                }
+            } else if (gd.material === 'stone') {
+                // Stone: gray with cracks
+                ctx.fillStyle = mat.color;
+                ctx.fillRect(-w / 2, -h / 2, w, h);
+                ctx.fillStyle = mat.colorDark;
+                ctx.fillRect(-w / 2, h / 2 - 3, w, 3);
+                ctx.fillRect(-w / 2, -h / 2, w, 3);
+                // Texture spots
+                ctx.fillStyle = mat.colorDark;
+                ctx.globalAlpha = 0.4;
+                const seedX = Math.floor(body.position.x);
+                const seedY = Math.floor(body.position.y);
+                for (let i = 0; i < 4; i++) {
+                    const sx = ((seedX * 13 + i * 7) % w) - w / 2;
+                    const sy = ((seedY * 17 + i * 11) % h) - h / 2;
+                    ctx.fillRect(sx, sy, 3, 3);
+                }
+                ctx.globalAlpha = 1;
+                if (hpRatio < 0.5) {
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-w / 3, -h / 3);
+                    ctx.lineTo(0, 0);
+                    ctx.lineTo(w / 3, h / 3);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function drawPigs() {
+            for (const body of game.pigs) {
+                drawPig(body);
+            }
+        }
+
+        function drawPig(body) {
+            const gd = body.gameData;
+            const r = gd.r;
+            const hpRatio = clamp(gd.hp / gd.maxHp, 0, 1);
+
+            ctx.save();
+            ctx.translate(body.position.x, body.position.y);
+            ctx.rotate(body.angle);
+
+            // Body shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.arc(2, 2, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            const bodyColor = hpRatio > 0.5 ? '#88dd44' : hpRatio > 0.25 ? '#aacc66' : '#cccc66';
+            ctx.fillStyle = bodyColor;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Darker outline
+            ctx.strokeStyle = '#5aa830';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Ears
+            ctx.fillStyle = '#5aa830';
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.5, -r * 0.7);
+            ctx.lineTo(-r * 0.2, -r * 1.1);
+            ctx.lineTo(-r * 0.1, -r * 0.7);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(r * 0.5, -r * 0.7);
+            ctx.lineTo(r * 0.2, -r * 1.1);
+            ctx.lineTo(r * 0.1, -r * 0.7);
+            ctx.closePath();
+            ctx.fill();
+
+            // Snout
+            ctx.fillStyle = '#5aa830';
+            ctx.beginPath();
+            ctx.ellipse(0, r * 0.2, r * 0.45, r * 0.3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Nostrils
+            ctx.fillStyle = '#3a7a20';
+            ctx.beginPath();
+            ctx.arc(-r * 0.15, r * 0.2, r * 0.08, 0, Math.PI * 2);
+            ctx.arc(r * 0.15, r * 0.2, r * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-r * 0.35, -r * 0.25, r * 0.25, 0, Math.PI * 2);
+            ctx.arc(r * 0.35, -r * 0.25, r * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            // Damaged pigs look angry/dizzy
+            if (hpRatio < 0.5) {
+                // X eyes
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1.5;
+                const drawX = (cx, cy, s) => {
+                    ctx.beginPath();
+                    ctx.moveTo(cx - s, cy - s);
+                    ctx.lineTo(cx + s, cy + s);
+                    ctx.moveTo(cx + s, cy - s);
+                    ctx.lineTo(cx - s, cy + s);
+                    ctx.stroke();
+                };
+                drawX(-r * 0.35, -r * 0.25, r * 0.12);
+                drawX(r * 0.35, -r * 0.25, r * 0.12);
+            } else {
+                ctx.beginPath();
+                ctx.arc(-r * 0.3, -r * 0.22, r * 0.1, 0, Math.PI * 2);
+                ctx.arc(r * 0.4, -r * 0.22, r * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+
+            // HP bar above pig (only if damaged)
+            if (hpRatio < 1) {
+                const barW = r * 2;
+                const barH = 4;
+                const bx = body.position.x - barW / 2;
+                const by = body.position.y - r - 10;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(bx - 1, by - 1, barW + 2, barH + 2);
+                ctx.fillStyle = hpRatio > 0.5 ? '#44aa44' : hpRatio > 0.25 ? '#ccaa44' : '#cc4444';
+                ctx.fillRect(bx, by, barW * hpRatio, barH);
+            }
+        }
+
+        function drawBird() {
+            if (!game.currentBird) return;
+            const body = game.currentBird;
+            const r = body.gameData.r;
+
+            ctx.save();
+            ctx.translate(body.position.x, body.position.y);
+            ctx.rotate(body.angle);
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.beginPath();
+            ctx.arc(2, 2, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.2, 0, 0, r);
+            grad.addColorStop(0, '#ff5555');
+            grad.addColorStop(1, '#a01515');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Outline
+            ctx.strokeStyle = '#7a1010';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Belly
+            ctx.fillStyle = '#f0d0a0';
+            ctx.beginPath();
+            ctx.ellipse(0, r * 0.35, r * 0.5, r * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes (white sclera)
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(-r * 0.25, -r * 0.2, r * 0.28, 0, Math.PI * 2);
+            ctx.arc(r * 0.25, -r * 0.2, r * 0.28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Pupils
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-r * 0.18, -r * 0.18, r * 0.12, 0, Math.PI * 2);
+            ctx.arc(r * 0.32, -r * 0.18, r * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Angry eyebrows
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.55, -r * 0.55);
+            ctx.lineTo(-r * 0.05, -r * 0.3);
+            ctx.moveTo(r * 0.55, -r * 0.55);
+            ctx.lineTo(r * 0.05, -r * 0.3);
+            ctx.stroke();
+
+            // Beak
+            ctx.fillStyle = '#f5a623';
+            ctx.strokeStyle = '#c08010';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.25, r * 0.05);
+            ctx.lineTo(r * 0.4, r * 0.15);
+            ctx.lineTo(-r * 0.2, r * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            // Beak split
+            ctx.beginPath();
+            ctx.moveTo(r * 0.05, r * 0.13);
+            ctx.lineTo(-r * 0.1, r * 0.27);
+            ctx.stroke();
+
+            // Tail feathers
+            ctx.fillStyle = '#a01515';
+            ctx.strokeStyle = '#7a1010';
+            ctx.beginPath();
+            ctx.moveTo(-r * 0.9, -r * 0.2);
+            ctx.lineTo(-r * 1.2, -r * 0.4);
+            ctx.lineTo(-r * 1.1, 0);
+            ctx.lineTo(-r * 1.2, r * 0.4);
+            ctx.lineTo(-r * 0.9, r * 0.2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawParticles() {
+            for (const p of game.particles) {
+                const alpha = clamp(p.life / p.maxLife, 0, 1);
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
+                if (p.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                }
+                ctx.restore();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawMenuOverlay() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffcc00';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 6;
+            ctx.font = 'bold 80px "Bangers", cursive';
+            ctx.strokeText(i18n.t('title'), W / 2, H / 2 - 40);
+            ctx.fillText(i18n.t('title'), W / 2, H / 2 - 40);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px "Inter", sans-serif';
+            ctx.fillText(i18n.t('press_launch'), W / 2, H / 2 + 30);
+
+            ctx.textAlign = 'start';
+        }
+
+        function drawWinOverlay() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffdd33';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 6;
+            ctx.font = 'bold 80px "Bangers", cursive';
+            ctx.strokeText(i18n.t('victory'), W / 2, H / 2 - 40);
+            ctx.fillText(i18n.t('victory'), W / 2, H / 2 - 40);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '22px "Inter", sans-serif';
+            ctx.fillText(`${i18n.t('score')}: ${game.score}`, W / 2, H / 2 + 10);
+            ctx.font = '16px "Inter", sans-serif';
+            ctx.fillText(i18n.t('press_retry'), W / 2, H / 2 + 50);
+
+            ctx.textAlign = 'start';
+        }
+
+        function drawLostOverlay() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ff5555';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 6;
+            ctx.font = 'bold 72px "Bangers", cursive';
+            ctx.strokeText(i18n.t('defeat'), W / 2, H / 2 - 40);
+            ctx.fillText(i18n.t('defeat'), W / 2, H / 2 - 40);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = '22px "Inter", sans-serif';
+            ctx.fillText(`${i18n.t('score')}: ${game.score}`, W / 2, H / 2 + 10);
+            ctx.font = '16px "Inter", sans-serif';
+            ctx.fillText(i18n.t('press_retry'), W / 2, H / 2 + 50);
+
+            ctx.textAlign = 'start';
+        }
+
+        // ===== Boot =====
+        initEngine();
+        updateHud();
+
+        loop.start(
+            (dt) => update(dt),
+            () => drawAll()
+        );
+    </script>
+</body>
+</html>

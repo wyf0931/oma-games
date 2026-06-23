@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>森林冰火人 — Fireboy & Watergirl</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/oma-games.css">
+    <style>
+        :root {
+            --forest-deep: #0a1f0a;
+            --forest-mid: #1a3a1a;
+            --forest-soft: #2a4a2a;
+            --bark: #5a3a1a;
+            --bark-dark: #3a2410;
+            --moss: #3a5a2a;
+            --moss-light: #6a9a4a;
+            --fire: #ff5544;
+            --fire-glow: rgba(255, 85, 68, 0.55);
+            --fire-bright: #ff8c1a;
+            --water: #44aaff;
+            --water-glow: rgba(68, 170, 255, 0.55);
+            --water-bright: #88ddff;
+            --acid: #88ff44;
+            --acid-glow: rgba(136, 255, 68, 0.45);
+            --gold: #f0c040;
+            --gold-glow: rgba(240, 192, 64, 0.5);
+            --metal: #6a6a6a;
+            --metal-dark: #3a3a3a;
+
+            --bg-primary: var(--forest-deep);
+            --bg-secondary: var(--forest-mid);
+            --bg-card: #0e2a0e;
+            --text-primary: #e8f4d8;
+            --text-secondary: #a8c898;
+            --text-dim: #6a8a5a;
+            --border: var(--moss);
+            --border-strong: var(--moss-light);
+            --accent: var(--gold);
+            --accent-strong: #ffd866;
+            --accent-contrast: var(--forest-deep);
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background:
+                radial-gradient(ellipse at top, var(--forest-mid) 0%, var(--forest-deep) 60%),
+                var(--forest-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 56px 20px 24px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Distant canopy: subtle leaf noise */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                radial-gradient(circle at 12% 18%, rgba(106, 154, 74, 0.08) 0px, transparent 80px),
+                radial-gradient(circle at 88% 12%, rgba(106, 154, 74, 0.06) 0px, transparent 100px),
+                radial-gradient(circle at 50% 92%, rgba(58, 90, 42, 0.18) 0px, transparent 220px);
+        }
+
+        #app {
+            display: flex;
+            gap: 22px;
+            align-items: stretch;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--moss);
+            border-radius: 8px;
+            box-shadow:
+                inset 0 0 32px rgba(58, 90, 42, 0.12),
+                0 8px 32px rgba(0, 0, 0, 0.55);
+            padding: 14px;
+        }
+
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--moss);
+            border-radius: 6px;
+            background: linear-gradient(180deg, rgba(58, 90, 42, 0.18), rgba(14, 42, 14, 0.5));
+            font-family: 'Russo One', sans-serif;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+        }
+
+        .hud-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-label {
+            color: var(--text-dim);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .hud-value {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .hud-value.fire { color: var(--fire); text-shadow: 0 0 8px var(--fire-glow); }
+        .hud-value.water { color: var(--water); text-shadow: 0 0 8px var(--water-glow); }
+        .hud-value.gold { color: var(--gold); text-shadow: 0 0 8px var(--gold-glow); }
+
+        .hp-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 3px;
+        }
+        .hp-dot.fire { background: var(--fire); box-shadow: 0 0 8px var(--fire-glow); }
+        .hp-dot.water { background: var(--water); box-shadow: 0 0 8px var(--water-glow); }
+        .hp-dot.off { background: var(--metal-dark); box-shadow: none; opacity: 0.5; }
+
+        canvas {
+            display: block;
+            background: var(--forest-deep);
+            border: 1px solid var(--moss);
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .config-panel {
+            width: 280px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--moss);
+            border-radius: 8px;
+            box-shadow:
+                inset 0 0 24px rgba(58, 90, 42, 0.1),
+                0 8px 32px rgba(0, 0, 0, 0.45);
+        }
+
+        .panel-title {
+            font-family: 'Russo One', sans-serif;
+            font-size: 22px;
+            color: var(--text-primary);
+            text-align: center;
+            letter-spacing: 2px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--moss);
+            line-height: 1.2;
+        }
+        .panel-title .sub {
+            display: block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            color: var(--gold);
+            margin-top: 4px;
+        }
+
+        .config-group {
+            background: rgba(14, 42, 14, 0.6);
+            border: 1px solid var(--moss);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .config-group .label {
+            display: block;
+            font-family: 'Russo One', sans-serif;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Difficulty buttons override */
+        .oma-diff-btn {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: rgba(14, 42, 14, 0.7);
+            color: var(--text-secondary);
+            border-color: var(--moss);
+        }
+        .oma-diff-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--moss-light);
+        }
+        .oma-diff-btn.active {
+            background: var(--gold);
+            color: var(--forest-deep);
+            border-color: var(--gold);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+
+        #btn-start {
+            width: 100%;
+            padding: 14px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 16px;
+            letter-spacing: 3px;
+            background: linear-gradient(180deg, var(--gold) 0%, var(--accent-strong) 100%);
+            color: var(--forest-deep);
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 16px var(--gold-glow);
+            transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+        }
+        #btn-start:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0 24px var(--gold-glow);
+        }
+        #btn-start:active:not(:disabled) { transform: translateY(0); }
+        #btn-start:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px 12px;
+            font-size: 13px;
+        }
+        .stat-grid .lbl {
+            color: var(--text-dim);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .stat-grid .val {
+            color: var(--text-primary);
+            font-weight: 700;
+            text-align: right;
+        }
+        .stat-grid .val.fire { color: var(--fire); }
+        .stat-grid .val.water { color: var(--water); }
+        .stat-grid .val.gold { color: var(--gold); }
+
+        .keys-help {
+            font-size: 12px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .keys-help .row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .keys-help .row.fire { color: var(--fire); }
+        .keys-help .row.water { color: var(--water); }
+        .keys-help .who {
+            font-family: 'Russo One', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            min-width: 56px;
+        }
+
+        .oma-key {
+            background: rgba(14, 42, 14, 0.7);
+            border-color: var(--moss);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            min-width: 24px;
+            padding: 2px 8px;
+        }
+
+        .progress-track {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .progress-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid var(--moss);
+            background: rgba(14, 42, 14, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Russo One', sans-serif;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        .progress-dot.done {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--forest-deep);
+            box-shadow: 0 0 8px var(--gold-glow);
+        }
+        .progress-dot.current {
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        /* === Unified game header theme overrides === */
+        :root {
+            --oma-header-bg: rgba(10, 31, 10, 0.7);
+            --oma-header-fg: var(--text-primary);
+            --oma-header-border: var(--moss);
+            --oma-header-hover-bg: var(--gold);
+            --oma-header-hover-fg: var(--forest-deep);
+            --oma-header-glow: var(--gold-glow);
+        }
+        .oma-game-header {
+            font-family: 'Russo One', sans-serif;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+        }
+
+        @media (max-width: 1100px) {
+            #app { flex-direction: column; }
+            .config-panel { width: 100%; max-width: 900px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="game-panel">
+            <div id="hud">
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="level_label">关卡</span>
+                    <span class="hud-value gold" id="hud-level">1 / 3</span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="fire_boy">火男孩</span>
+                    <span id="hud-fire-hp" class="hp-row">
+                        <span class="hp-dot fire"></span>
+                    </span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="water_girl">水女孩</span>
+                    <span id="hud-water-hp" class="hp-row">
+                        <span class="hp-dot water"></span>
+                    </span>
+                </div>
+                <div class="hud-block">
+                    <span class="hud-label" data-i18n="status_label">状态</span>
+                    <span class="hud-value" id="hud-status">—</span>
+                </div>
+            </div>
+            <canvas id="canvas" width="900" height="600"></canvas>
+        </div>
+
+        <div class="config-panel">
+            <div class="panel-title">
+                <span data-i18n="title">森林冰火人</span>
+                <span class="sub">FIREBOY &amp; WATERGIRL</span>
+            </div>
+
+            <div class="config-group">
+                <span class="label" data-i18n="difficulty">难度</span>
+                <div class="oma-diff-group" id="diff-group">
+                    <button class="oma-diff-btn active" data-level="beginner" data-i18n="beginner">初级</button>
+                    <button class="oma-diff-btn" data-level="intermediate" data-i18n="intermediate">中级</button>
+                    <button class="oma-diff-btn" data-level="advanced" data-i18n="advanced">高级</button>
+                </div>
+                <div class="hint" data-i18n="diff_hint">关卡数与合作机制复杂度</div>
+            </div>
+
+            <button id="btn-start"><span data-i18n="start_btn">▶ 开始冒险</span></button>
+
+            <div class="config-group">
+                <span class="label" data-i18n="progress">关卡进度</span>
+                <div class="progress-track" id="progress-track"></div>
+                <div class="hint" id="progress-hint" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="config-group">
+                <span class="label" data-i18n="controls">键位</span>
+                <div class="keys-help">
+                    <div class="row fire">
+                        <span class="who" data-i18n="fire_boy">火男孩</span>
+                        <span class="oma-key">A</span>
+                        <span class="oma-key">D</span>
+                        <span style="color:var(--text-dim);" data-i18n="move">移动</span>
+                        <span class="oma-key">W</span>
+                        <span style="color:var(--text-dim);" data-i18n="jump">跳跃</span>
+                    </div>
+                    <div class="row water">
+                        <span class="who" data-i18n="water_girl">水女孩</span>
+                        <span class="oma-key">←</span>
+                        <span class="oma-key">→</span>
+                        <span style="color:var(--text-dim);" data-i18n="move">移动</span>
+                        <span class="oma-key">↑</span>
+                        <span style="color:var(--text-dim);" data-i18n="jump">跳跃</span>
+                    </div>
+                    <div class="row" style="color:var(--text-dim); margin-top:8px;">
+                        <span class="oma-key">R</span>
+                        <span data-i18n="restart_hint">重开本关</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <span class="label" data-i18n="rules">规则</span>
+                <div class="stat-grid">
+                    <span class="lbl" data-i18n="rule_fire_water">火男孩怕水</span><span class="val fire" data-i18n="death">死亡</span>
+                    <span class="lbl" data-i18n="rule_water_fire">水女孩怕火</span><span class="val water" data-i18n="death">死亡</span>
+                    <span class="lbl" data-i18n="rule_acid">绿酸液</span><span class="val" style="color:var(--acid);" data-i18n="both_die">双双死亡</span>
+                    <span class="lbl" data-i18n="rule_goal">通关条件</span><span class="val gold" data-i18n="both_goal">双人到门</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/oma-games.js"></script>
+    <script>
+    'use strict';
+    const { i18n, theme, input, loop, fsm, DIFFICULTY, clamp, rectIntersect } = OmaGames;
+
+    i18n.load({
+        zh: {
+            title: '森林冰火人',
+            difficulty: '难度',
+            diff_hint: '关卡数与合作机制复杂度',
+            beginner: '初级',
+            intermediate: '中级',
+            advanced: '高级',
+            start_btn: '▶ 开始冒险',
+            controls: '键位',
+            move: '移动',
+            jump: '跳跃',
+            restart_hint: '重开本关',
+            rules: '规则',
+            death: '死亡',
+            both_die: '双双死亡',
+            both_goal: '双人到门',
+            rule_fire_water: '火男孩怕水',
+            rule_water_fire: '水女孩怕火',
+            rule_acid: '绿酸液',
+            rule_goal: '通关条件',
+            level_label: '关卡',
+            fire_boy: '火男孩',
+            water_girl: '水女孩',
+            status_label: '状态',
+            progress: '关卡进度',
+            level_n: '第 %d 关',
+            status_menu: '待机',
+            status_playing: '进行中',
+            status_won: '通关',
+            status_lost: '失败',
+            press_start: '点击开始冒险 或按 空格',
+            level_complete: '关卡通过！',
+            level_failed: '关卡失败…',
+            next_coming: '下一关…',
+            press_retry: '按 R 重试本关',
+            victory: '森林征服！',
+            victory_hint: '所有关卡通关',
+            btn_restart: '▶ 再次冒险'
+        },
+        en: {
+            title: 'Forest Fireboy & Watergirl',
+            difficulty: 'Difficulty',
+            diff_hint: 'Level count and cooperation complexity',
+            beginner: 'Beginner',
+            intermediate: 'Intermediate',
+            advanced: 'Advanced',
+            start_btn: '▶ Start Quest',
+            controls: 'Controls',
+            move: 'Move',
+            jump: 'Jump',
+            restart_hint: 'Restart Level',
+            rules: 'Rules',
+            death: 'Dies',
+            both_die: 'Both Die',
+            both_goal: 'Both Reach Doors',
+            rule_fire_water: 'Fireboy fears water',
+            rule_water_fire: 'Watergirl fears fire',
+            rule_acid: 'Green acid',
+            rule_goal: 'Clear Condition',
+            level_label: 'Level',
+            fire_boy: 'Fireboy',
+            water_girl: 'Watergirl',
+            status_label: 'Status',
+            progress: 'Progress',
+            level_n: 'Level %d',
+            status_menu: 'Idle',
+            status_playing: 'Playing',
+            status_won: 'Cleared',
+            status_lost: 'Failed',
+            press_start: 'Click Start Quest or press SPACE',
+            level_complete: 'Level Clear!',
+            level_failed: 'Level Failed…',
+            next_coming: 'Next level…',
+            press_retry: 'Press R to retry',
+            victory: 'Forest Conquered!',
+            victory_hint: 'All levels cleared',
+            btn_restart: '▶ Quest Again'
+        }
+    });
+    theme.init();
+    input.init();
+    OmaGames.ui.header();
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const hudLevel = document.getElementById('hud-level');
+    const hudFireHp = document.getElementById('hud-fire-hp');
+    const hudWaterHp = document.getElementById('hud-water-hp');
+    const hudStatus = document.getElementById('hud-status');
+    const progressTrack = document.getElementById('progress-track');
+    const progressHint = document.getElementById('progress-hint');
+    const btnStart = document.getElementById('btn-start');
+
+    // ===== Physics constants =====
+    const GRAVITY = 0.55;
+    const MOVE_ACCEL = 0.9;
+    const MOVE_MAX = 4.2;
+    const FRICTION = 0.78;
+    const JUMP_FORCE = 11.2;
+
+    // ===== Player factory =====
+    function makePlayer(type, x, y) {
+        return {
+            type,             // 'fire' | 'water'
+            x, y,
+            w: 26, h: 36,
+            vx: 0, vy: 0,
+            onGround: false,
+            alive: true,
+            atGoal: false,
+            facing: 1,
+            // trail particles
+            trail: [],
+            // death animation
+            deadFx: null,
+            spawnX: x, spawnY: y,
+            jumpKeyHeld: false
+        };
+    }
+
+    // ===== Level definitions =====
+    // Geometry: 900x600 canvas. Origin top-left.
+    // Solid platforms {x,y,w,h}. Decorative platforms not needed — all are solid.
+    // Hazards {type:'water'|'fire'|'acid', x,y,w,h, kills:'fire'|'water'|'both'}
+    // Buttons {x,y,w, targetDoor}. Doors {id,x,y,w,h,open}.
+    // Boxes {x,y,w,h,vx,vy} — pushable. Moving platforms {x,y,w,h, axis, range, speed, phase}.
+    // Goal: each level has fireGoal {x,y,w,h} and waterGoal {x,y,w,h}.
+
+    const LEVELS = {
+        beginner: [
+            // L1 — gentle intro
+            {
+                name: '初识森林',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 900, h: 40 },          // ground
+                    { x: 200, y: 460, w: 140, h: 18 },
+                    { x: 420, y: 380, w: 140, h: 18 },
+                    { x: 640, y: 300, w: 140, h: 18 },
+                    { x: 640, y: 540, w: 80, h: 20 }
+                ],
+                hazards: [
+                    { type: 'water', x: 360, y: 540, w: 60, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 580, y: 540, w: 60, h: 20, kills: 'water' }
+                ],
+                buttons: [],
+                doors: [],
+                boxes: [],
+                movers: [],
+                fireGoal:  { x: 700, y: 250, w: 40, h: 50 },
+                waterGoal: { x: 760, y: 250, w: 40, h: 50 }
+            },
+            // L2 — split paths
+            {
+                name: '冰火分径',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 200, h: 40 },
+                    { x: 700, y: 560, w: 200, h: 40 },
+                    { x: 250, y: 460, w: 120, h: 18 },
+                    { x: 530, y: 460, w: 120, h: 18 },
+                    { x: 380, y: 360, w: 140, h: 18 },
+                    { x: 250, y: 240, w: 400, h: 18 }
+                ],
+                hazards: [
+                    { type: 'acid', x: 200, y: 540, w: 500, h: 20, kills: 'both' }
+                ],
+                buttons: [],
+                doors: [],
+                boxes: [],
+                movers: [],
+                fireGoal:  { x: 280, y: 190, w: 40, h: 50 },
+                waterGoal: { x: 580, y: 190, w: 40, h: 50 }
+            },
+            // L3 — small jump puzzle
+            {
+                name: '跳跃之间',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 160, h: 40 },
+                    { x: 740, y: 560, w: 160, h: 40 },
+                    { x: 180, y: 470, w: 80, h: 16 },
+                    { x: 320, y: 410, w: 80, h: 16 },
+                    { x: 460, y: 350, w: 80, h: 16 },
+                    { x: 600, y: 410, w: 80, h: 16 },
+                    { x: 700, y: 320, w: 200, h: 16 },
+                    { x: 0,   y: 320, w: 200, h: 16 }
+                ],
+                hazards: [
+                    { type: 'water', x: 160, y: 540, w: 100, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 640, y: 540, w: 100, h: 20, kills: 'water' },
+                    { type: 'acid',  x: 260, y: 540, w: 380, h: 20, kills: 'both' }
+                ],
+                buttons: [],
+                doors: [],
+                boxes: [],
+                movers: [],
+                fireGoal:  { x: 40,  y: 270, w: 40, h: 50 },
+                waterGoal: { x: 820, y: 270, w: 40, h: 50 }
+            }
+        ],
+        intermediate: [
+            // L1 — first button + door
+            {
+                name: '协作之门',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 900, h: 40 },
+                    { x: 300, y: 460, w: 120, h: 18 },
+                    { x: 500, y: 380, w: 120, h: 18 },
+                    { x: 700, y: 300, w: 200, h: 18 },
+                    { x: 220, y: 300, w: 80, h: 18 }
+                ],
+                hazards: [
+                    { type: 'water', x: 420, y: 540, w: 80, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 620, y: 540, w: 80, h: 20, kills: 'water' }
+                ],
+                buttons: [
+                    { x: 540, y: 372, w: 40, h: 8, targetDoor: 'gate1' }
+                ],
+                doors: [
+                    { id: 'gate1', x: 280, y: 220, w: 24, h: 80, open: false }
+                ],
+                boxes: [],
+                movers: [],
+                fireGoal:  { x: 80,  y: 250, w: 40, h: 50 },
+                waterGoal: { x: 140, y: 250, w: 40, h: 50 }
+            },
+            // L2 — push the box
+            {
+                name: '推动之箱',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 900, h: 40 },
+                    { x: 200, y: 460, w: 500, h: 18 },
+                    { x: 760, y: 380, w: 140, h: 18 }
+                ],
+                hazards: [
+                    { type: 'acid', x: 0, y: 540, w: 200, h: 20, kills: 'both' },
+                    { type: 'acid', x: 700, y: 540, w: 200, h: 20, kills: 'both' }
+                ],
+                buttons: [
+                    { x: 820, y: 372, w: 40, h: 8, targetDoor: 'gate2' }
+                ],
+                doors: [
+                    { id: 'gate2', x: 380, y: 380, w: 24, h: 80, open: false }
+                ],
+                boxes: [
+                    { x: 300, y: 420, w: 36, h: 36, vx: 0, vy: 0 }
+                ],
+                movers: [],
+                fireGoal:  { x: 100, y: 510, w: 36, h: 50 },
+                waterGoal: { x: 150, y: 510, w: 36, h: 50 }
+            },
+            // L3 — double button sync
+            {
+                name: '双钮齐按',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 820, y: 500 } },
+                platforms: [
+                    { x: 0,   y: 560, w: 200, h: 40 },
+                    { x: 700, y: 560, w: 200, h: 40 },
+                    { x: 220, y: 460, w: 460, h: 18 },
+                    { x: 220, y: 280, w: 460, h: 18 }
+                ],
+                hazards: [
+                    { type: 'acid', x: 200, y: 540, w: 500, h: 20, kills: 'both' }
+                ],
+                buttons: [
+                    { x: 250, y: 452, w: 40, h: 8, targetDoor: 'gateL' },
+                    { x: 610, y: 452, w: 40, h: 8, targetDoor: 'gateR' }
+                ],
+                doors: [
+                    { id: 'gateL', x: 380, y: 200, w: 24, h: 80, open: false },
+                    { id: 'gateR', x: 496, y: 200, w: 24, h: 80, open: false }
+                ],
+                boxes: [],
+                movers: [],
+                fireGoal:  { x: 410, y: 230, w: 36, h: 50 },
+                waterGoal: { x: 460, y: 230, w: 36, h: 50 }
+            },
+            // L4 — vertical cooperation
+            {
+                name: '登高合作',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 900, h: 40 },
+                    { x: 180, y: 470, w: 80, h: 16 },
+                    { x: 340, y: 400, w: 80, h: 16 },
+                    { x: 500, y: 330, w: 80, h: 16 },
+                    { x: 660, y: 260, w: 80, h: 16 },
+                    { x: 480, y: 180, w: 360, h: 16 }
+                ],
+                hazards: [
+                    { type: 'water', x: 260, y: 540, w: 80, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 580, y: 540, w: 80, h: 20, kills: 'water' }
+                ],
+                buttons: [
+                    { x: 690, y: 252, w: 40, h: 8, targetDoor: 'topGate' }
+                ],
+                doors: [
+                    { id: 'topGate', x: 460, y: 100, w: 24, h: 80, open: false }
+                ],
+                boxes: [],
+                movers: [],
+                fireGoal:  { x: 520, y: 130, w: 36, h: 50 },
+                waterGoal: { x: 780, y: 130, w: 36, h: 50 }
+            }
+        ],
+        advanced: [
+            // L1 — moving platform intro
+            {
+                name: '浮岛之间',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0,   y: 560, w: 200, h: 40 },
+                    { x: 700, y: 560, w: 200, h: 40 },
+                    { x: 360, y: 320, w: 180, h: 16 }
+                ],
+                hazards: [
+                    { type: 'acid', x: 200, y: 540, w: 500, h: 20, kills: 'both' }
+                ],
+                buttons: [],
+                doors: [],
+                boxes: [],
+                movers: [
+                    { x: 220, y: 440, w: 90, h: 14, axis: 'y', range: 80, speed: 1.1, phase: 0 },
+                    { x: 590, y: 440, w: 90, h: 14, axis: 'y', range: 80, speed: 1.1, phase: Math.PI }
+                ],
+                fireGoal:  { x: 720, y: 510, w: 36, h: 50 },
+                waterGoal: { x: 820, y: 510, w: 36, h: 50 }
+            },
+            // L2 — mixed hazards + moving
+            {
+                name: '迁徙之径',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 180, h: 40 },
+                    { x: 380, y: 460, w: 140, h: 16 },
+                    { x: 720, y: 560, w: 180, h: 40 },
+                    { x: 720, y: 360, w: 180, h: 16 }
+                ],
+                hazards: [
+                    { type: 'water', x: 180, y: 540, w: 200, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 520, y: 540, w: 200, h: 20, kills: 'water' }
+                ],
+                buttons: [],
+                doors: [],
+                boxes: [],
+                movers: [
+                    { x: 200, y: 380, w: 100, h: 14, axis: 'x', range: 80, speed: 1.4, phase: 0 },
+                    { x: 540, y: 380, w: 100, h: 14, axis: 'x', range: 80, speed: 1.4, phase: Math.PI }
+                ],
+                fireGoal:  { x: 740, y: 310, w: 36, h: 50 },
+                waterGoal: { x: 840, y: 310, w: 36, h: 50 }
+            },
+            // L3 — button + mover + boxes
+            {
+                name: '机关重重',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 820, y: 500 } },
+                platforms: [
+                    { x: 0,   y: 560, w: 200, h: 40 },
+                    { x: 700, y: 560, w: 200, h: 40 },
+                    { x: 260, y: 460, w: 380, h: 18 },
+                    { x: 360, y: 280, w: 180, h: 18 }
+                ],
+                hazards: [
+                    { type: 'acid', x: 200, y: 540, w: 500, h: 20, kills: 'both' }
+                ],
+                buttons: [
+                    { x: 280, y: 452, w: 40, h: 8, targetDoor: 'midGate' },
+                    { x: 580, y: 452, w: 40, h: 8, targetDoor: 'midGate' }
+                ],
+                doors: [
+                    { id: 'midGate', x: 430, y: 200, w: 24, h: 80, open: false }
+                ],
+                boxes: [
+                    { x: 360, y: 420, w: 36, h: 36, vx: 0, vy: 0 }
+                ],
+                movers: [
+                    { x: 100, y: 380, w: 80, h: 14, axis: 'y', range: 70, speed: 1.2, phase: 0 },
+                    { x: 720, y: 380, w: 80, h: 14, axis: 'y', range: 70, speed: 1.2, phase: 0 }
+                ],
+                fireGoal:  { x: 380, y: 230, w: 36, h: 50 },
+                waterGoal: { x: 490, y: 230, w: 36, h: 50 }
+            },
+            // L4 — vertical sync with movers
+            {
+                name: '塔楼攀登',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 80, y: 500 } },
+                platforms: [
+                    { x: 0, y: 560, w: 900, h: 40 },
+                    { x: 180, y: 460, w: 80, h: 16 },
+                    { x: 340, y: 360, w: 80, h: 16 },
+                    { x: 500, y: 260, w: 80, h: 16 },
+                    { x: 660, y: 180, w: 240, h: 16 },
+                    { x: 0,   y: 180, w: 240, h: 16 }
+                ],
+                hazards: [
+                    { type: 'water', x: 260, y: 540, w: 80, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 580, y: 540, w: 80, h: 20, kills: 'water' },
+                    { type: 'acid',  x: 340, y: 540, w: 240, h: 20, kills: 'both' }
+                ],
+                buttons: [
+                    { x: 220, y: 172, w: 40, h: 8, targetDoor: 'topA' }
+                ],
+                doors: [
+                    { id: 'topA', x: 380, y: 100, w: 24, h: 80, open: false }
+                ],
+                boxes: [],
+                movers: [
+                    { x: 200, y: 540, w: 60, h: 14, axis: 'y', range: 80, speed: 1.0, phase: 0 }
+                ],
+                fireGoal:  { x: 40,  y: 130, w: 36, h: 50 },
+                waterGoal: { x: 820, y: 130, w: 36, h: 50 }
+            },
+            // L5 — final mix
+            {
+                name: '终极试炼',
+                spawn: { fire: { x: 40, y: 500 }, water: { x: 820, y: 500 } },
+                platforms: [
+                    { x: 0,   y: 560, w: 160, h: 40 },
+                    { x: 740, y: 560, w: 160, h: 40 },
+                    { x: 200, y: 460, w: 100, h: 16 },
+                    { x: 600, y: 460, w: 100, h: 16 },
+                    { x: 350, y: 360, w: 200, h: 16 },
+                    { x: 200, y: 260, w: 100, h: 16 },
+                    { x: 600, y: 260, w: 100, h: 16 },
+                    { x: 360, y: 160, w: 180, h: 16 }
+                ],
+                hazards: [
+                    { type: 'acid', x: 160, y: 540, w: 580, h: 20, kills: 'both' },
+                    { type: 'water', x: 300, y: 340, w: 50, h: 20, kills: 'fire' },
+                    { type: 'fire',  x: 550, y: 340, w: 50, h: 20, kills: 'water' }
+                ],
+                buttons: [
+                    { x: 220, y: 252, w: 40, h: 8, targetDoor: 'finalL' },
+                    { x: 640, y: 252, w: 40, h: 8, targetDoor: 'finalR' }
+                ],
+                doors: [
+                    { id: 'finalL', x: 380, y: 80, w: 24, h: 80, open: false },
+                    { id: 'finalR', x: 500, y: 80, w: 24, h: 80, open: false }
+                ],
+                boxes: [],
+                movers: [
+                    { x: 320, y: 420, w: 70, h: 14, axis: 'y', range: 60, speed: 1.0, phase: 0 },
+                    { x: 510, y: 420, w: 70, h: 14, axis: 'y', range: 60, speed: 1.0, phase: Math.PI }
+                ],
+                fireGoal:  { x: 390, y: 110, w: 36, h: 50 },
+                waterGoal: { x: 470, y: 110, w: 36, h: 50 }
+            }
+        ]
+    };
+
+    // ===== Game state =====
+    let config = { difficulty: 'beginner' };
+    const states = {
+        MENU:     { start: 'PLAYING' },
+        PLAYING:  { win: 'WIN', lose: 'LOST', retry: 'PLAYING', next: 'PLAYING' },
+        WIN:      { start: 'PLAYING', restart: 'MENU' },
+        LOST:     { retry: 'PLAYING', restart: 'MENU' }
+    };
+    const machine = fsm(states, 'MENU');
+
+    let currentLevelIdx = 0;
+    let currentLevelData = null;
+    let completedLevels = [];     // boolean per level for chosen difficulty
+    let levelTimer = 0;           // for state transition delays
+    let deathParticles = [];      // global death fx queue
+    let ambientParticles = [];    // forest fireflies
+    let frameCounter = 0;
+
+    const player1 = makePlayer('fire', 40, 500);
+    const player2 = makePlayer('water', 80, 500);
+
+    document.querySelectorAll('#diff-group .oma-diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (machine.is('PLAYING')) return;
+            document.querySelectorAll('#diff-group .oma-diff-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            config.difficulty = btn.dataset.level;
+            currentLevelIdx = 0;
+            completedLevels = new Array(LEVELS[config.difficulty].length).fill(false);
+            renderProgress();
+            updateHud();
+        });
+    });
+
+    btnStart.addEventListener('click', () => {
+        if (machine.is('PLAYING')) return;
+        startFullGame();
+    });
+
+    function startFullGame() {
+        currentLevelIdx = 0;
+        completedLevels = new Array(LEVELS[config.difficulty].length).fill(false);
+        loadLevel(currentLevelIdx);
+        machine.set('PLAYING');
+        machine.current = 'PLAYING';
+        btnStart.disabled = true;
+        renderProgress();
+        updateHud();
+    }
+
+    function loadLevel(idx) {
+        const levels = LEVELS[config.difficulty];
+        const data = levels[idx];
+        // deep clone mutable bits
+        currentLevelData = {
+            name: data.name,
+            platforms: data.platforms.map(p => Object.assign({}, p)),
+            hazards: data.hazards.map(h => Object.assign({}, h)),
+            buttons: data.buttons.map(b => Object.assign({}, b, { pressed: false })),
+            doors:   data.doors.map(d => Object.assign({}, d, { open: false })),
+            boxes:   data.boxes.map(b => Object.assign({}, b, { vx:0, vy:0, onGround:false })),
+            movers:  data.movers.map(m => Object.assign({}, m, { origX: m.x, origY: m.y, t: m.phase || 0 })),
+            fireGoal:  Object.assign({}, data.fireGoal),
+            waterGoal: Object.assign({}, data.waterGoal)
+        };
+
+        // reset players
+        resetEntity(player1, data.spawn.fire);
+        resetEntity(player2, data.spawn.water);
+        deathParticles = [];
+    }
+
+    function resetEntity(p, spawn) {
+        p.x = spawn.x; p.y = spawn.y;
+        p.vx = 0; p.vy = 0;
+        p.alive = true; p.atGoal = false;
+        p.deadFx = null;
+        p.trail = [];
+        p.spawnX = spawn.x; p.spawnY = spawn.y;
+        p.jumpKeyHeld = false;
+        p.onGround = false;
+    }
+
+    function renderProgress() {
+        const levels = LEVELS[config.difficulty];
+        progressTrack.innerHTML = '';
+        for (let i = 0; i < levels.length; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            if (completedLevels[i]) dot.classList.add('done');
+            else if (i === currentLevelIdx) dot.classList.add('current');
+            dot.textContent = String(i + 1);
+            progressTrack.appendChild(dot);
+        }
+        const remaining = levels.length - currentLevelIdx;
+        progressHint.textContent = i18n.t('level_n').replace('%d', String(currentLevelIdx + 1))
+            + ' · ' + levels[currentLevelIdx].name;
+    }
+
+    function updateHud() {
+        const total = LEVELS[config.difficulty].length;
+        hudLevel.textContent = (currentLevelIdx + 1) + ' / ' + total;
+        // HP dots — single life per level
+        hudFireHp.innerHTML = player1.alive
+            ? '<span class="hp-dot fire"></span>'
+            : '<span class="hp-dot fire off"></span>';
+        hudWaterHp.innerHTML = player2.alive
+            ? '<span class="hp-dot water"></span>'
+            : '<span class="hp-dot water off"></span>';
+        const statusMap = {
+            MENU: 'status_menu', PLAYING: 'status_playing',
+            WIN: 'status_won', LOST: 'status_lost'
+        };
+        hudStatus.textContent = i18n.t(statusMap[machine.current] || 'status_menu');
+        if (machine.current === 'PLAYING') {
+            hudStatus.classList.remove('gold');
+        } else if (machine.current === 'WIN') {
+            hudStatus.classList.add('gold');
+        } else {
+            hudStatus.classList.remove('gold');
+        }
+    }
+
+    // ===== Input helper — independent queries per player =====
+    function readInput() {
+        return {
+            fire: {
+                left:  input.pressed('a', 'A'),
+                right: input.pressed('d', 'D'),
+                jump:  input.pressed('w', 'W')
+            },
+            water: {
+                left:  input.pressed('ArrowLeft'),
+                right: input.pressed('ArrowRight'),
+                jump:  input.pressed('ArrowUp')
+            },
+            retry: input.pressed('r', 'R'),
+            start: input.pressed(' ')
+        };
+    }
+
+    // ===== Collision helpers =====
+    function solidsAt(level) {
+        // moving platforms are also solid
+        return level.platforms.concat(level.movers);
+    }
+
+    function blockedDoors(level) {
+        // closed doors are solid
+        return level.doors.filter(d => !d.open);
+    }
+
+    // Move a single axis, resolve against solids/boxes/doors
+    function moveAxis(entity, dx, dy, level, others) {
+        entity.x += dx;
+        entity.y += dy;
+        const candidates = solidsAt(level)
+            .concat(blockedDoors(level))
+            .concat(others || []);
+        for (const s of candidates) {
+            if (rectIntersect(entity, s)) {
+                if (dx > 0) entity.x = s.x - entity.w;
+                else if (dx < 0) entity.x = s.x + s.w;
+                if (dy > 0) { entity.y = s.y - entity.h; entity.vy = 0; entity.onGround = true; }
+                else if (dy < 0) { entity.y = s.y + s.h; entity.vy = 0; }
+            }
+        }
+    }
+
+    // ===== Player physics =====
+    function updatePlayer(p, inputState, level, otherPlayer) {
+        if (!p.alive) return;
+
+        // Horizontal motion
+        if (inputState.left)  { p.vx -= MOVE_ACCEL; p.facing = -1; }
+        if (inputState.right) { p.vx += MOVE_ACCEL; p.facing = 1; }
+        if (!inputState.left && !inputState.right) {
+            p.vx *= FRICTION;
+            if (Math.abs(p.vx) < 0.05) p.vx = 0;
+        }
+        p.vx = clamp(p.vx, -MOVE_MAX, MOVE_MAX);
+
+        // Jump
+        if (inputState.jump && p.onGround && !p.jumpKeyHeld) {
+            p.vy = -JUMP_FORCE;
+            p.onGround = false;
+            p.jumpKeyHeld = true;
+        }
+        if (!inputState.jump) p.jumpKeyHeld = false;
+
+        // Gravity
+        p.vy += GRAVITY;
+        p.vy = clamp(p.vy, -20, 14);
+
+        // Reset onGround before re-resolving
+        p.onGround = false;
+
+        // Other player is treated as a moving solid (so they can stand on each other)
+        const others = [otherPlayer];
+        // Boxes (also move with player) — treat as solid for now
+        const boxesAsSolids = level.boxes.map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h }));
+
+        // Move X
+        p.x += p.vx;
+        const collX = solidsAt(level).concat(blockedDoors(level)).concat(boxesAsSolids).concat(others);
+        for (const s of collX) {
+            if (rectIntersect(p, s)) {
+                if (p.vx > 0) p.x = s.x - p.w;
+                else if (p.vx < 0) p.x = s.x + s.w;
+                p.vx = 0;
+            }
+        }
+
+        // Move Y
+        p.y += p.vy;
+        const collY = solidsAt(level).concat(blockedDoors(level)).concat(boxesAsSolids).concat(others);
+        for (const s of collY) {
+            if (rectIntersect(p, s)) {
+                if (p.vy > 0) { p.y = s.y - p.h; p.vy = 0; p.onGround = true; }
+                else if (p.vy < 0) { p.y = s.y + s.h; p.vy = 0; }
+            }
+        }
+
+        // World bounds
+        if (p.x < 0) { p.x = 0; p.vx = 0; }
+        if (p.x + p.w > W) { p.x = W - p.w; p.vx = 0; }
+        if (p.y > H + 100) {
+            // fell into a pit
+            killPlayer(p);
+            return;
+        }
+
+        // Trail particles
+        if (frameCounter % 3 === 0) {
+            p.trail.push({
+                x: p.x + p.w / 2,
+                y: p.y + p.h - 4,
+                size: 4 + Math.random() * 3,
+                life: 1.0,
+                vy: -0.3 - Math.random() * 0.4,
+                vx: (Math.random() - 0.5) * 0.6
+            });
+        }
+        p.trail.forEach(t => { t.life -= 0.04; t.x += t.vx; t.y += t.vy; });
+        p.trail = p.trail.filter(t => t.life > 0).slice(-30);
+
+        // Goal check
+        const goal = p.type === 'fire' ? level.fireGoal : level.waterGoal;
+        p.atGoal = rectIntersect(p, goal);
+    }
+
+    // ===== Box physics (pushable, gravity, rest on solids) =====
+    function updateBoxes(level, p1, p2) {
+        for (const box of level.boxes) {
+            // Horizontal push from players
+            for (const pl of [p1, p2]) {
+                if (!pl.alive) continue;
+                // overlap test for side push
+                if (rectIntersect({ x: pl.x, y: pl.y, w: pl.w, h: pl.h }, box)) {
+                    if (pl.vx > 0) box.x = pl.x + pl.w;
+                    else if (pl.vx < 0) box.x = pl.x - box.w;
+                    // box transmits horizontal velocity from push
+                    if (pl.vx !== 0) box.vx = pl.vx * 0.7;
+                }
+            }
+            // Friction
+            box.vx *= 0.7;
+            if (Math.abs(box.vx) < 0.05) box.vx = 0;
+            // Move X
+            box.x += box.vx;
+            const solidsX = solidsAt(level).concat(blockedDoors(level));
+            for (const s of solidsX) {
+                if (rectIntersect(box, s)) {
+                    if (box.vx > 0) box.x = s.x - box.w;
+                    else if (box.vx < 0) box.x = s.x + s.w;
+                    box.vx = 0;
+                }
+            }
+            // World bounds
+            if (box.x < 0) { box.x = 0; box.vx = 0; }
+            if (box.x + box.w > W) { box.x = W - box.w; box.vx = 0; }
+
+            // Gravity
+            box.vy += GRAVITY;
+            box.vy = clamp(box.vy, -10, 12);
+            box.onGround = false;
+            box.y += box.vy;
+            const solidsY = solidsAt(level).concat(blockedDoors(level));
+            for (const s of solidsY) {
+                if (rectIntersect(box, s)) {
+                    if (box.vy > 0) { box.y = s.y - box.h; box.vy = 0; box.onGround = true; }
+                    else if (box.vy < 0) { box.y = s.y + s.h; box.vy = 0; }
+                }
+            }
+            // Players standing on box
+            for (const pl of [p1, p2]) {
+                if (!pl.alive) continue;
+                const standing = pl.vy >= 0 && pl.x + pl.w > box.x + 2 && pl.x < box.x + box.w - 2
+                    && Math.abs((pl.y + pl.h) - box.y) < 4;
+                if (standing) {
+                    pl.y = box.y - pl.h;
+                    pl.vy = 0;
+                    pl.onGround = true;
+                }
+            }
+            // Fell into pit
+            if (box.y > H + 100) {
+                // Reset box to spawn (we stored origX/origY in mover clone but not box; re-use initial)
+                box.x = 300; box.y = 420; box.vx = 0; box.vy = 0;
+            }
+        }
+    }
+
+    // ===== Movers (moving platforms) =====
+    function updateMovers(level, p1, p2) {
+        for (const m of level.movers) {
+            m.t += 0.02 * m.speed;
+            const oldX = m.x, oldY = m.y;
+            if (m.axis === 'y') {
+                m.y = m.origY + Math.sin(m.t) * m.range;
+            } else {
+                m.x = m.origX + Math.sin(m.t) * m.range;
+            }
+            const dx = m.x - oldX, dy = m.y - oldY;
+            // Carry players standing on top
+            for (const pl of [p1, p2]) {
+                if (!pl.alive) continue;
+                const onTop = pl.vy >= 0
+                    && pl.x + pl.w > m.x + 2 && pl.x < m.x + m.w - 2
+                    && Math.abs((pl.y + pl.h) - m.y) < 6;
+                if (onTop) {
+                    pl.x += dx;
+                    pl.y += dy;
+                    pl.y = m.y - pl.h;
+                    pl.vy = 0;
+                    pl.onGround = true;
+                }
+            }
+        }
+    }
+
+    // ===== Button + door logic =====
+    function updateButtons(level, p1, p2, boxes) {
+        for (const btn of level.buttons) {
+            const btnRect = { x: btn.x, y: btn.y, w: btn.w, h: 12 };
+            let pressed = false;
+            if (p1.alive && rectIntersect({ x: p1.x, y: p1.y, w: p1.w, h: p1.h }, btnRect)) pressed = true;
+            if (p2.alive && rectIntersect({ x: p2.x, y: p2.y, w: p2.w, h: p2.h }, btnRect)) pressed = true;
+            for (const box of boxes) {
+                if (rectIntersect(box, btnRect)) { pressed = true; break; }
+            }
+            btn.pressed = pressed;
+            const target = level.doors.find(d => d.id === btn.targetDoor);
+            if (target) target.open = pressed;
+        }
+    }
+
+    // ===== Hazards =====
+    function checkHazards(p, level) {
+        if (!p.alive) return;
+        for (const h of level.hazards) {
+            if (rectIntersect({ x: p.x, y: p.y, w: p.w, h: p.h }, h)) {
+                if (h.kills === 'both' || h.kills === p.type) {
+                    killPlayer(p);
+                    return;
+                }
+            }
+        }
+    }
+
+    function killPlayer(p) {
+        if (!p.alive) return;
+        p.alive = false;
+        p.atGoal = false;
+        // Spawn evaporation particles
+        const color = p.type === 'fire' ? '#ff8c1a' : '#88ddff';
+        for (let i = 0; i < 32; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const sp = 1 + Math.random() * 3;
+            deathParticles.push({
+                x: p.x + p.w / 2,
+                y: p.y + p.h / 2,
+                vx: Math.cos(ang) * sp,
+                vy: Math.sin(ang) * sp - 1.5,
+                size: 3 + Math.random() * 4,
+                life: 1.0,
+                color: color
+            });
+        }
+    }
+
+    function updateDeathParticles() {
+        for (const dp of deathParticles) {
+            dp.x += dp.vx;
+            dp.y += dp.vy;
+            dp.vy += 0.1;   // slight gravity
+            dp.life -= 0.02;
+        }
+        deathParticles = deathParticles.filter(dp => dp.life > 0);
+    }
+
+    // ===== Ambient forest particles (fireflies) =====
+    function initAmbient() {
+        ambientParticles = [];
+        for (let i = 0; i < 28; i++) {
+            ambientParticles.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.2,
+                size: 1 + Math.random() * 2,
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.02 + Math.random() * 0.03
+            });
+        }
+    }
+    initAmbient();
+
+    function updateAmbient() {
+        for (const p of ambientParticles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.phase += p.speed;
+            if (p.x < 0) p.x = W;
+            if (p.x > W) p.x = 0;
+            if (p.y < 0) p.y = H;
+            if (p.y > H) p.y = 0;
+        }
+    }
+
+    // ===== Main update / draw =====
+    function update(dt) {
+        frameCounter++;
+        const inp = readInput();
+
+        // MENU
+        if (machine.is('MENU')) {
+            if (inp.start) startFullGame();
+            updateAmbient();
+            return;
+        }
+        // WIN
+        if (machine.is('WIN')) {
+            if (levelTimer > 0) {
+                levelTimer--;
+            } else {
+                if (inp.start) {
+                    // restart full run
+                    machine.current = 'MENU';
+                    btnStart.disabled = false;
+                    updateHud();
+                }
+            }
+            updateDeathParticles();
+            updateAmbient();
+            return;
+        }
+        // LOST
+        if (machine.is('LOST')) {
+            if (levelTimer > 0) levelTimer--;
+            if (inp.retry && levelTimer <= 0) {
+                loadLevel(currentLevelIdx);
+                machine.current = 'PLAYING';
+                updateHud();
+            }
+            updateDeathParticles();
+            updateAmbient();
+            return;
+        }
+
+        // PLAYING — restart on demand
+        if (inp.retry) {
+            loadLevel(currentLevelIdx);
+            return;
+        }
+
+        const level = currentLevelData;
+        if (!level) return;
+
+        // 1. Update movers first (positions)
+        updateMovers(level, player1, player2);
+
+        // 2. Update players
+        updatePlayer(player1, inp.fire, level, player2);
+        updatePlayer(player2, inp.water, level, player1);
+
+        // 3. Update boxes (after players so pushes resolve)
+        updateBoxes(level, player1, player2);
+
+        // 4. Update buttons / doors
+        updateButtons(level, player1, player2, level.boxes);
+
+        // 5. Hazards
+        checkHazards(player1, level);
+        checkHazards(player2, level);
+
+        // 6. Death → LOST (after fx plays)
+        if (!player1.alive || !player2.alive) {
+            levelTimer = 70;
+            machine.current = 'LOST';
+            updateHud();
+        }
+
+        // 7. Win check — both at goals
+        if (player1.alive && player2.alive && player1.atGoal && player2.atGoal) {
+            completedLevels[currentLevelIdx] = true;
+            levelTimer = 80;
+            const nextIdx = currentLevelIdx + 1;
+            if (nextIdx >= LEVELS[config.difficulty].length) {
+                machine.current = 'WIN';
+                renderProgress();
+                updateHud();
+                btnStart.disabled = false;
+            } else {
+                // Show level-complete flash, then advance
+                machine.current = 'WIN';
+                renderProgress();
+                updateHud();
+                setTimeout(() => {
+                    if (machine.is('WIN')) {
+                        currentLevelIdx = nextIdx;
+                        loadLevel(currentLevelIdx);
+                        machine.current = 'PLAYING';
+                        renderProgress();
+                        updateHud();
+                    }
+                }, 1500);
+            }
+        }
+
+        updateDeathParticles();
+        updateAmbient();
+        updateHud();
+    }
+
+    function draw() {
+        // Background gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#0a1f0a');
+        grad.addColorStop(0.6, '#0e2a0e');
+        grad.addColorStop(1, '#1a3a1a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Ambient fireflies
+        for (const p of ambientParticles) {
+            const alpha = 0.3 + 0.3 * Math.sin(p.phase);
+            ctx.fillStyle = `rgba(240, 220, 120, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        if (machine.is('MENU')) {
+            drawMenu();
+            return;
+        }
+
+        const level = currentLevelData;
+        if (!level) {
+            drawMenu();
+            return;
+        }
+
+        // ===== Draw level =====
+        // Hazards first (behind platforms)
+        for (const h of level.hazards) drawHazard(h);
+
+        // Movers
+        for (const m of level.movers) drawPlatform(m, true);
+
+        // Static platforms
+        for (const p of level.platforms) drawPlatform(p, false);
+
+        // Doors
+        for (const d of level.doors) drawDoor(d);
+
+        // Buttons
+        for (const b of level.buttons) drawButton(b);
+
+        // Boxes
+        for (const box of level.boxes) drawBox(box);
+
+        // Goals
+        drawGoal(level.fireGoal, 'fire');
+        drawGoal(level.waterGoal, 'water');
+
+        // Players
+        if (player1.alive) drawPlayer(player1);
+        if (player2.alive) drawPlayer(player2);
+
+        // Death particles (on top)
+        for (const dp of deathParticles) {
+            ctx.globalAlpha = clamp(dp.life, 0, 1);
+            ctx.fillStyle = dp.color;
+            ctx.shadowColor = dp.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(dp.x, dp.y, dp.size * dp.life, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        // Goal hint markers above doors
+        drawGoalLabels(level);
+
+        // State overlays
+        if (machine.is('WIN')) {
+            // "Level complete" small overlay (not the final victory)
+            const isFinal = currentLevelIdx + 1 >= LEVELS[config.difficulty].length
+                && completedLevels[LEVELS[config.difficulty].length - 1];
+            if (isFinal) drawVictoryOverlay();
+            else drawLevelClearOverlay();
+        }
+        if (machine.is('LOST')) drawLostOverlay();
+    }
+
+    // ===== Drawing primitives =====
+    function drawPlatform(p, isMover) {
+        // Bark body
+        ctx.fillStyle = isMover ? '#4a2a0a' : '#5a3a1a';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        // Bark grain lines
+        ctx.strokeStyle = '#3a2410';
+        ctx.lineWidth = 1;
+        for (let i = 6; i < p.w - 4; i += 12) {
+            ctx.beginPath();
+            ctx.moveTo(p.x + i, p.y + 4);
+            ctx.lineTo(p.x + i, p.y + p.h - 2);
+            ctx.stroke();
+        }
+        // Moss top edge
+        ctx.fillStyle = '#3a5a2a';
+        ctx.fillRect(p.x, p.y, p.w, 4);
+        // Moss highlight
+        ctx.fillStyle = '#6a9a4a';
+        for (let i = 0; i < p.w; i += 8) {
+            ctx.fillRect(p.x + i, p.y, 4, 2);
+        }
+        if (isMover) {
+            // Mover marker — small arrows
+            ctx.fillStyle = 'rgba(240, 192, 64, 0.4)';
+            ctx.fillRect(p.x + p.w / 2 - 6, p.y + 6, 12, 2);
+        }
+    }
+
+    function drawHazard(h) {
+        const wave = Math.sin(frameCounter * 0.06) * 2;
+        let baseColor, glowColor, bubble;
+        if (h.type === 'water') {
+            baseColor = 'rgba(68, 170, 255, 0.7)';
+            glowColor = 'rgba(68, 170, 255, 0.5)';
+            bubble = '#88ddff';
+        } else if (h.type === 'fire') {
+            baseColor = 'rgba(255, 100, 30, 0.85)';
+            glowColor = 'rgba(255, 140, 26, 0.55)';
+            bubble = '#ffd866';
+        } else {
+            baseColor = 'rgba(136, 255, 68, 0.7)';
+            glowColor = 'rgba(136, 255, 68, 0.5)';
+            bubble = '#ccffaa';
+        }
+        ctx.save();
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = baseColor;
+        ctx.fillRect(h.x, h.y + 2, h.w, h.h - 2);
+        ctx.shadowBlur = 0;
+        // Wavy surface
+        ctx.fillStyle = bubble;
+        ctx.beginPath();
+        ctx.moveTo(h.x, h.y + 3);
+        for (let x = 0; x <= h.w; x += 6) {
+            ctx.lineTo(h.x + x, h.y + 3 + Math.sin((x + frameCounter * 2) * 0.18) * 1.6);
+        }
+        ctx.lineTo(h.x + h.w, h.y);
+        ctx.lineTo(h.x, h.y);
+        ctx.closePath();
+        ctx.fill();
+        // Bubbles
+        for (let i = 0; i < h.w; i += 18) {
+            const bx = h.x + i + ((frameCounter * (h.type === 'fire' ? 1.5 : 0.6) + i) % 18);
+            const by = h.y + h.h - 4 - ((frameCounter * 0.6 + i * 1.3) % (h.h - 6));
+            ctx.fillStyle = bubble;
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            ctx.arc(bx, by, 1.5 + wave * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+    }
+
+    function drawDoor(d) {
+        const color = d.open ? '#4ade80' : '#ef4444';
+        const colorGlow = d.open ? 'rgba(74, 222, 128, 0.5)' : 'rgba(239, 68, 68, 0.5)';
+        ctx.save();
+        if (d.open) {
+            // Open — show frame only, no body
+            ctx.strokeStyle = '#88ddff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(d.x, d.y, d.w, d.h);
+            // Indicator light
+            ctx.fillStyle = color;
+            ctx.shadowColor = colorGlow;
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(d.x + d.w / 2, d.y + 6, 4, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Closed — metal body
+            ctx.fillStyle = '#6a6a6a';
+            ctx.shadowColor = colorGlow;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(d.x, d.y, d.w, d.h);
+            ctx.shadowBlur = 0;
+            // Rivets
+            ctx.fillStyle = '#3a3a3a';
+            for (let y = 8; y < d.h - 4; y += 12) {
+                ctx.beginPath();
+                ctx.arc(d.x + 4, d.y + y, 1.5, 0, Math.PI * 2);
+                ctx.arc(d.x + d.w - 4, d.y + y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // Indicator light
+            ctx.fillStyle = color;
+            ctx.shadowColor = colorGlow;
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(d.x + d.w / 2, d.y + 6, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function drawButton(b) {
+        const offset = b.pressed ? 3 : 0;
+        // Base
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(b.x, b.y, b.w, 8);
+        // Top
+        ctx.fillStyle = b.pressed ? '#a07820' : '#f0c040';
+        ctx.shadowColor = b.pressed ? 'rgba(240, 192, 64, 0.3)' : 'rgba(240, 192, 64, 0.7)';
+        ctx.shadowBlur = b.pressed ? 4 : 14;
+        ctx.fillRect(b.x + 2, b.y - 3 + offset, b.w - 4, 5);
+        ctx.shadowBlur = 0;
+        // Stem
+        ctx.fillStyle = '#6a6a6a';
+        ctx.fillRect(b.x + 4, b.y + 5 - offset, b.w - 8, 2);
+    }
+
+    function drawBox(box) {
+        // Wooden crate
+        ctx.fillStyle = '#8a5a2a';
+        ctx.fillRect(box.x, box.y, box.w, box.h);
+        ctx.strokeStyle = '#5a3a1a';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2);
+        // Cross brace
+        ctx.beginPath();
+        ctx.moveTo(box.x + 3, box.y + 3);
+        ctx.lineTo(box.x + box.w - 3, box.y + box.h - 3);
+        ctx.moveTo(box.x + box.w - 3, box.y + 3);
+        ctx.lineTo(box.x + 3, box.y + box.h - 3);
+        ctx.stroke();
+    }
+
+    function drawGoal(g, type) {
+        const color = type === 'fire' ? '#ff5544' : '#44aaff';
+        const glow  = type === 'fire' ? 'rgba(255, 85, 68, 0.6)' : 'rgba(68, 170, 255, 0.6)';
+        // Door frame
+        ctx.save();
+        ctx.shadowColor = glow;
+        ctx.shadowBlur = 22;
+        ctx.fillStyle = 'rgba(14, 42, 14, 0.9)';
+        ctx.fillRect(g.x, g.y, g.w, g.h);
+        ctx.shadowBlur = 0;
+        // Pillar
+        ctx.fillStyle = color;
+        ctx.fillRect(g.x + 2, g.y + 4, g.w - 4, g.h - 8);
+        // Inner light column
+        ctx.fillStyle = type === 'fire' ? '#ffaa66' : '#aaeeff';
+        ctx.fillRect(g.x + g.w / 2 - 3, g.y + 8, 6, g.h - 16);
+        // Top arch
+        ctx.beginPath();
+        ctx.arc(g.x + g.w / 2, g.y + 4, g.w / 2 - 2, Math.PI, 0);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawGoalLabels(level) {
+        ctx.font = 'bold 11px "Russo One", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ff8c1a';
+        ctx.shadowColor = 'rgba(255, 140, 26, 0.6)';
+        ctx.shadowBlur = 6;
+        ctx.fillText('FIRE', level.fireGoal.x + level.fireGoal.w / 2, level.fireGoal.y - 8);
+        ctx.fillStyle = '#88ddff';
+        ctx.shadowColor = 'rgba(136, 221, 255, 0.6)';
+        ctx.fillText('WATER', level.waterGoal.x + level.waterGoal.w / 2, level.waterGoal.y - 8);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'start';
+    }
+
+    function drawPlayer(p) {
+        // Trail particles
+        for (const t of p.trail) {
+            ctx.globalAlpha = t.life * 0.6;
+            ctx.fillStyle = p.type === 'fire' ? '#ff8c1a' : '#88ddff';
+            ctx.shadowColor = p.type === 'fire' ? 'rgba(255,140,26,0.7)' : 'rgba(136,221,255,0.7)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, t.size * t.life, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+
+        const baseColor = p.type === 'fire' ? '#ff5544' : '#44aaff';
+        const glowColor = p.type === 'fire' ? 'rgba(255, 85, 68, 0.7)' : 'rgba(68, 170, 255, 0.7)';
+        const accent    = p.type === 'fire' ? '#ffd866' : '#ddf6ff';
+
+        ctx.save();
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 14;
+        // Body
+        ctx.fillStyle = baseColor;
+        roundRect(p.x, p.y, p.w, p.h, 6);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // Belly highlight
+        ctx.fillStyle = accent;
+        roundRect(p.x + 5, p.y + 12, p.w - 10, p.h - 22, 4);
+        ctx.fill();
+        // Top flame/water crown
+        ctx.fillStyle = baseColor;
+        ctx.beginPath();
+        const crownY = p.y - 4;
+        if (p.type === 'fire') {
+            // jagged flame
+            ctx.moveTo(p.x + 2, crownY + 4);
+            ctx.lineTo(p.x + 6, crownY - 4);
+            ctx.lineTo(p.x + 10, crownY + 2);
+            ctx.lineTo(p.x + 14, crownY - 6);
+            ctx.lineTo(p.x + 18, crownY + 2);
+            ctx.lineTo(p.x + 22, crownY - 4);
+            ctx.lineTo(p.x + p.w - 2, crownY + 4);
+            ctx.lineTo(p.x + p.w - 2, p.y + 2);
+            ctx.lineTo(p.x + 2, p.y + 2);
+        } else {
+            // droplet crown
+            ctx.moveTo(p.x + 2, p.y + 2);
+            ctx.quadraticCurveTo(p.x + 4, crownY, p.x + p.w / 2, crownY);
+            ctx.quadraticCurveTo(p.x + p.w - 4, crownY, p.x + p.w - 2, p.y + 2);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Eyes
+        const eyeOffset = p.facing >= 0 ? 1 : -1;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x + 8 + eyeOffset, p.y + 18, 3, 0, Math.PI * 2);
+        ctx.arc(p.x + 17 + eyeOffset, p.y + 18, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0a1f0a';
+        ctx.beginPath();
+        ctx.arc(p.x + 8 + eyeOffset + (p.facing >= 0 ? 0.6 : -0.6), p.y + 18, 1.4, 0, Math.PI * 2);
+        ctx.arc(p.x + 17 + eyeOffset + (p.facing >= 0 ? 0.6 : -0.6), p.y + 18, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // atGoal indicator
+        if (p.atGoal) {
+            ctx.strokeStyle = '#f0c040';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(240, 192, 64, 0.8)';
+            ctx.shadowBlur = 12;
+            roundRect(p.x - 3, p.y - 3, p.w + 6, p.h + 6, 8);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+        ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r) {
+        r = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    function drawMenu() {
+        // Decorative forest entrance
+        ctx.fillStyle = '#0a1f0a';
+        ctx.fillRect(0, 0, W, H);
+
+        // Backdrop trees silhouette
+        for (let i = 0; i < 6; i++) {
+            const x = 80 + i * 150;
+            ctx.fillStyle = '#0e240e';
+            ctx.beginPath();
+            ctx.moveTo(x, H - 80);
+            ctx.lineTo(x - 50, H - 200 + (i % 2) * 30);
+            ctx.lineTo(x - 20, H - 280 + (i % 3) * 20);
+            ctx.lineTo(x + 20, H - 280 + (i % 3) * 20);
+            ctx.lineTo(x + 50, H - 200 + (i % 2) * 30);
+            ctx.closePath();
+            ctx.fill();
+            // trunk
+            ctx.fillStyle = '#2a1a08';
+            ctx.fillRect(x - 8, H - 90, 16, 30);
+        }
+
+        // Title with glow
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 56px "Russo One", sans-serif';
+        const grad2 = ctx.createLinearGradient(0, H / 2 - 60, 0, H / 2);
+        grad2.addColorStop(0, '#ff8c1a');
+        grad2.addColorStop(1, '#ff5544');
+        ctx.fillStyle = grad2;
+        ctx.shadowColor = 'rgba(255, 140, 26, 0.8)';
+        ctx.shadowBlur = 24;
+        ctx.fillText(i18n.t('title'), W / 2, H / 2 - 20);
+
+        ctx.font = '14px "Rajdhani", sans-serif';
+        ctx.fillStyle = '#f0c040';
+        ctx.shadowColor = 'rgba(240, 192, 64, 0.6)';
+        ctx.shadowBlur = 10;
+        ctx.fillText('FIREBOY  &  WATERGIRL', W / 2, H / 2 + 12);
+
+        // Tagline
+        ctx.font = '16px "Rajdhani", sans-serif';
+        ctx.fillStyle = '#a8c898';
+        ctx.shadowBlur = 0;
+        ctx.fillText(i18n.t('press_start'), W / 2, H / 2 + 60);
+
+        // Two-character preview
+        const py = H / 2 + 110;
+        ctx.shadowColor = 'rgba(255, 85, 68, 0.7)';
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = '#ff5544';
+        roundRect(W / 2 - 80, py, 30, 40, 6);
+        ctx.fill();
+        ctx.shadowColor = 'rgba(68, 170, 255, 0.7)';
+        ctx.fillStyle = '#44aaff';
+        roundRect(W / 2 + 50, py, 30, 40, 6);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+
+    function drawLevelClearOverlay() {
+        ctx.fillStyle = 'rgba(10, 31, 10, 0.55)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 48px "Russo One", sans-serif';
+        ctx.fillStyle = '#f0c040';
+        ctx.shadowColor = 'rgba(240, 192, 64, 0.7)';
+        ctx.shadowBlur = 20;
+        ctx.fillText(i18n.t('level_complete'), W / 2, H / 2);
+        ctx.font = '18px "Rajdhani", sans-serif';
+        ctx.fillStyle = '#a8c898';
+        ctx.shadowBlur = 6;
+        ctx.fillText(i18n.t('next_coming'), W / 2, H / 2 + 36);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'start';
+    }
+
+    function drawVictoryOverlay() {
+        ctx.fillStyle = 'rgba(10, 31, 10, 0.7)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 56px "Russo One", sans-serif';
+        const grad3 = ctx.createLinearGradient(0, H / 2 - 60, 0, H / 2);
+        grad3.addColorStop(0, '#ffd866');
+        grad3.addColorStop(1, '#f0c040');
+        ctx.fillStyle = grad3;
+        ctx.shadowColor = 'rgba(240, 192, 64, 0.8)';
+        ctx.shadowBlur = 24;
+        ctx.fillText(i18n.t('victory'), W / 2, H / 2 - 10);
+        ctx.font = '16px "Rajdhani", sans-serif';
+        ctx.fillStyle = '#a8c898';
+        ctx.shadowBlur = 6;
+        ctx.fillText(i18n.t('victory_hint'), W / 2, H / 2 + 22);
+        ctx.fillStyle = '#e8f4d8';
+        ctx.fillText(i18n.t('btn_restart'), W / 2, H / 2 + 56);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'start';
+    }
+
+    function drawLostOverlay() {
+        ctx.fillStyle = 'rgba(20, 0, 0, 0.55)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 44px "Russo One", sans-serif';
+        ctx.fillStyle = '#ff5544';
+        ctx.shadowColor = 'rgba(255, 85, 68, 0.7)';
+        ctx.shadowBlur = 20;
+        ctx.fillText(i18n.t('level_failed'), W / 2, H / 2);
+        ctx.font = '16px "Rajdhani", sans-serif';
+        ctx.fillStyle = '#e8f4d8';
+        ctx.shadowBlur = 6;
+        ctx.fillText(i18n.t('press_retry'), W / 2, H / 2 + 36);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'start';
+    }
+
+    // ===== Boot =====
+    completedLevels = new Array(LEVELS[config.difficulty].length).fill(false);
+    renderProgress();
+    updateHud();
+
+    loop.start(
+        (dt) => update(dt),
+        () => draw()
+    );
+    </script>
+</body>
+</html>
